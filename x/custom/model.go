@@ -1,11 +1,17 @@
 package custom
 
 import (
+	"github.com/iov-one/tutorial/morm"
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/orm"
 )
 
-var _ orm.Model = (*CustomStateIndexed)(nil)
+var _ morm.Model = (*CustomStateIndexed)(nil)
+
+func (m *CustomStateIndexed) SetID(id []byte) error {
+	m.ID = id
+	return nil
+}
 
 func (m *CustomStateIndexed) Validate() error {
 	var errs error
@@ -19,6 +25,13 @@ func (m *CustomStateIndexed) Validate() error {
 	if m.InnerStateEnum != InnerStateEnum_CaseOne && m.InnerStateEnum != InnerStateEnum_CaseTwo {
 		errs = errors.Append(errs,
 			errors.Field("InnerStateEnum", errors.ErrState, "invalid inner state enum"))
+	}
+
+	if err := m.DeletedAt.Validate(); err != nil {
+		errs = errors.AppendField(errs, "DeletedAt", m.DeletedAt.Validate())
+	} else if m.DeletedAt == 0 {
+		errs = errors.Append(errs,
+			errors.Field("DeletedAt", errors.ErrEmpty, "missing created at"))
 	}
 	// TODO add custom validation for your state fields
 	return errs
@@ -34,6 +47,35 @@ func (m *CustomStateIndexed) Copy() orm.CloneableData {
 		CustomByte:     copyBytes(m.CustomByte),
 		DeletedAt:      m.DeletedAt,
 	}
+}
+
+var _ orm.Model = (*CustomState)(nil)
+
+func (m *CustomState) Validate() error {
+	var errs error
+
+	errs = errors.AppendField(errs, "Metadata", m.Metadata.Validate())
+	if m.InnerState == nil {
+		errs = errors.Append(errs, errors.Field("InnerState", errors.ErrEmpty, "missing inner state"))
+	}
+	if err := m.CreatedAt.Validate(); err != nil {
+		errs = errors.AppendField(errs, "CreatedAt", m.CreatedAt.Validate())
+	} else if m.CreatedAt == 0 {
+		errs = errors.Append(errs,
+			errors.Field("DeletedAt", errors.ErrEmpty, "missing created at"))
+	}
+
+	return errs
+}
+
+func (m *CustomState) Copy() orm.CloneableData {
+	return &CustomState{
+		Metadata:      m.Metadata.Copy(),
+		InnerState:    m.InnerState,
+		CustomAddress: copyBytes(m.CustomAddress),
+		CreatedAt:     m.CreatedAt,
+	}
+
 }
 
 // isGenID ensures that the ID is 8 byte input.
