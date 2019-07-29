@@ -20,18 +20,16 @@ func (m *CustomStateIndexed) Validate() error {
 	errs = errors.AppendField(errs, "ID", isGenID(m.ID, true))
 	errs = errors.AppendField(errs, "CustomString", customStringValidation(m.CustomString))
 	if m.CustomByte == nil {
-		errs = errors.Append(errs, errors.Field("CustomByte", errors.ErrEmpty, "required"))
+		errs = errors.AppendField(errs, "CustomByte", errors.ErrEmpty)
 	}
 	if m.InnerStateEnum != InnerStateEnum_CaseOne && m.InnerStateEnum != InnerStateEnum_CaseTwo {
-		errs = errors.Append(errs,
-			errors.Field("InnerStateEnum", errors.ErrState, "invalid"))
+		errs = errors.AppendField(errs, "InnerStateEnum", errors.ErrState)
 	}
 
 	if err := m.DeletedAt.Validate(); err != nil {
 		errs = errors.AppendField(errs, "DeletedAt", m.DeletedAt.Validate())
 	} else if m.DeletedAt == 0 {
-		errs = errors.Append(errs,
-			errors.Field("DeletedAt", errors.ErrEmpty, "required"))
+		errs = errors.AppendField(errs, "DeletedAt", errors.ErrEmpty)
 	}
 	return errs
 }
@@ -55,13 +53,12 @@ func (m *CustomState) Validate() error {
 
 	errs = errors.AppendField(errs, "Metadata", m.Metadata.Validate())
 	if m.InnerState == nil {
-		errs = errors.Append(errs, errors.Field("InnerState", errors.ErrEmpty, "required"))
+		errs = errors.AppendField(errs, "InnerState", errors.ErrEmpty)
 	}
 	if err := m.CreatedAt.Validate(); err != nil {
 		errs = errors.AppendField(errs, "CreatedAt", m.CreatedAt.Validate())
 	} else if m.CreatedAt == 0 {
-		errs = errors.Append(errs,
-			errors.Field("CreatedAt", errors.ErrEmpty, "missing"))
+		errs = errors.AppendField(errs, "CreatedAt", errors.ErrEmpty)
 	}
 
 	return errs
