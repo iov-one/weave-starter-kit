@@ -8,8 +8,12 @@ import (
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	custom "github.com/iov-one/weave-starter-kit/x/custom"
+	migration "github.com/iov-one/weave/migration"
 	cash "github.com/iov-one/weave/x/cash"
+	currency "github.com/iov-one/weave/x/currency"
+	multisig "github.com/iov-one/weave/x/multisig"
 	sigs "github.com/iov-one/weave/x/sigs"
+	validators "github.com/iov-one/weave/x/validators"
 	io "io"
 	math "math"
 )
@@ -28,14 +32,19 @@ const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 // Tx contains the message
 type Tx struct {
 	// fee info, autogenerates GetFees()
-	CashFees       *cash.FeeInfo        `protobuf:"bytes,20,opt,name=cash_fees,json=cashFees,proto3" json:"cash_fees,omitempty"`
-	SigsSignatures []*sigs.StdSignature `protobuf:"bytes,21,rep,name=sigs_signatures,json=sigsSignatures,proto3" json:"sigs_signatures,omitempty"`
+	CashFees       *cash.FeeInfo        `protobuf:"bytes,1,opt,name=cash_fees,json=cashFees,proto3" json:"cash_fees,omitempty"`
+	SigsSignatures []*sigs.StdSignature `protobuf:"bytes,2,rep,name=sigs_signatures,json=sigsSignatures,proto3" json:"sigs_signatures,omitempty"`
 	// ID of a multisig contract.
 	Multisig [][]byte `protobuf:"bytes,4,rep,name=multisig,proto3" json:"multisig,omitempty"`
 	// msg is a sum type over all allowed messages on this chain.
 	//
 	// Types that are valid to be assigned to Sum:
 	//	*Tx_CashSendMsg
+	//	*Tx_CreateContractMsg
+	//	*Tx_UpdateContractMsg
+	//	*Tx_ValidatorsApplyDiffMsg
+	//	*Tx_CurrencyCreateMsg
+	//	*Tx_MigrationUpgradeSchemaMsg
 	//	*Tx_CustomCreateStateIndexedMsg
 	//	*Tx_CreateCustomStateMsg
 	Sum isTx_Sum `protobuf_oneof:"sum"`
@@ -83,6 +92,21 @@ type isTx_Sum interface {
 type Tx_CashSendMsg struct {
 	CashSendMsg *cash.SendMsg `protobuf:"bytes,51,opt,name=cash_send_msg,json=cashSendMsg,proto3,oneof"`
 }
+type Tx_CreateContractMsg struct {
+	CreateContractMsg *multisig.CreateMsg `protobuf:"bytes,56,opt,name=create_contract_msg,json=createContractMsg,proto3,oneof"`
+}
+type Tx_UpdateContractMsg struct {
+	UpdateContractMsg *multisig.UpdateMsg `protobuf:"bytes,57,opt,name=update_contract_msg,json=updateContractMsg,proto3,oneof"`
+}
+type Tx_ValidatorsApplyDiffMsg struct {
+	ValidatorsApplyDiffMsg *validators.ApplyDiffMsg `protobuf:"bytes,58,opt,name=validators_apply_diff_msg,json=validatorsApplyDiffMsg,proto3,oneof"`
+}
+type Tx_CurrencyCreateMsg struct {
+	CurrencyCreateMsg *currency.CreateMsg `protobuf:"bytes,59,opt,name=currency_create_msg,json=currencyCreateMsg,proto3,oneof"`
+}
+type Tx_MigrationUpgradeSchemaMsg struct {
+	MigrationUpgradeSchemaMsg *migration.UpgradeSchemaMsg `protobuf:"bytes,69,opt,name=migration_upgrade_schema_msg,json=migrationUpgradeSchemaMsg,proto3,oneof"`
+}
 type Tx_CustomCreateStateIndexedMsg struct {
 	CustomCreateStateIndexedMsg *custom.CreateCustomStateIndexedMsg `protobuf:"bytes,100,opt,name=custom_create_state_indexed_msg,json=customCreateStateIndexedMsg,proto3,oneof"`
 }
@@ -91,6 +115,11 @@ type Tx_CreateCustomStateMsg struct {
 }
 
 func (*Tx_CashSendMsg) isTx_Sum()                 {}
+func (*Tx_CreateContractMsg) isTx_Sum()           {}
+func (*Tx_UpdateContractMsg) isTx_Sum()           {}
+func (*Tx_ValidatorsApplyDiffMsg) isTx_Sum()      {}
+func (*Tx_CurrencyCreateMsg) isTx_Sum()           {}
+func (*Tx_MigrationUpgradeSchemaMsg) isTx_Sum()   {}
 func (*Tx_CustomCreateStateIndexedMsg) isTx_Sum() {}
 func (*Tx_CreateCustomStateMsg) isTx_Sum()        {}
 
@@ -129,6 +158,41 @@ func (m *Tx) GetCashSendMsg() *cash.SendMsg {
 	return nil
 }
 
+func (m *Tx) GetCreateContractMsg() *multisig.CreateMsg {
+	if x, ok := m.GetSum().(*Tx_CreateContractMsg); ok {
+		return x.CreateContractMsg
+	}
+	return nil
+}
+
+func (m *Tx) GetUpdateContractMsg() *multisig.UpdateMsg {
+	if x, ok := m.GetSum().(*Tx_UpdateContractMsg); ok {
+		return x.UpdateContractMsg
+	}
+	return nil
+}
+
+func (m *Tx) GetValidatorsApplyDiffMsg() *validators.ApplyDiffMsg {
+	if x, ok := m.GetSum().(*Tx_ValidatorsApplyDiffMsg); ok {
+		return x.ValidatorsApplyDiffMsg
+	}
+	return nil
+}
+
+func (m *Tx) GetCurrencyCreateMsg() *currency.CreateMsg {
+	if x, ok := m.GetSum().(*Tx_CurrencyCreateMsg); ok {
+		return x.CurrencyCreateMsg
+	}
+	return nil
+}
+
+func (m *Tx) GetMigrationUpgradeSchemaMsg() *migration.UpgradeSchemaMsg {
+	if x, ok := m.GetSum().(*Tx_MigrationUpgradeSchemaMsg); ok {
+		return x.MigrationUpgradeSchemaMsg
+	}
+	return nil
+}
+
 func (m *Tx) GetCustomCreateStateIndexedMsg() *custom.CreateCustomStateIndexedMsg {
 	if x, ok := m.GetSum().(*Tx_CustomCreateStateIndexedMsg); ok {
 		return x.CustomCreateStateIndexedMsg
@@ -147,6 +211,11 @@ func (m *Tx) GetCreateCustomStateMsg() *custom.CreateCustomStateMsg {
 func (*Tx) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
 	return _Tx_OneofMarshaler, _Tx_OneofUnmarshaler, _Tx_OneofSizer, []interface{}{
 		(*Tx_CashSendMsg)(nil),
+		(*Tx_CreateContractMsg)(nil),
+		(*Tx_UpdateContractMsg)(nil),
+		(*Tx_ValidatorsApplyDiffMsg)(nil),
+		(*Tx_CurrencyCreateMsg)(nil),
+		(*Tx_MigrationUpgradeSchemaMsg)(nil),
 		(*Tx_CustomCreateStateIndexedMsg)(nil),
 		(*Tx_CreateCustomStateMsg)(nil),
 	}
@@ -159,6 +228,31 @@ func _Tx_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
 	case *Tx_CashSendMsg:
 		_ = b.EncodeVarint(51<<3 | proto.WireBytes)
 		if err := b.EncodeMessage(x.CashSendMsg); err != nil {
+			return err
+		}
+	case *Tx_CreateContractMsg:
+		_ = b.EncodeVarint(56<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.CreateContractMsg); err != nil {
+			return err
+		}
+	case *Tx_UpdateContractMsg:
+		_ = b.EncodeVarint(57<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.UpdateContractMsg); err != nil {
+			return err
+		}
+	case *Tx_ValidatorsApplyDiffMsg:
+		_ = b.EncodeVarint(58<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.ValidatorsApplyDiffMsg); err != nil {
+			return err
+		}
+	case *Tx_CurrencyCreateMsg:
+		_ = b.EncodeVarint(59<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.CurrencyCreateMsg); err != nil {
+			return err
+		}
+	case *Tx_MigrationUpgradeSchemaMsg:
+		_ = b.EncodeVarint(69<<3 | proto.WireBytes)
+		if err := b.EncodeMessage(x.MigrationUpgradeSchemaMsg); err != nil {
 			return err
 		}
 	case *Tx_CustomCreateStateIndexedMsg:
@@ -188,6 +282,46 @@ func _Tx_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bo
 		msg := new(cash.SendMsg)
 		err := b.DecodeMessage(msg)
 		m.Sum = &Tx_CashSendMsg{msg}
+		return true, err
+	case 56: // sum.create_contract_msg
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(multisig.CreateMsg)
+		err := b.DecodeMessage(msg)
+		m.Sum = &Tx_CreateContractMsg{msg}
+		return true, err
+	case 57: // sum.update_contract_msg
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(multisig.UpdateMsg)
+		err := b.DecodeMessage(msg)
+		m.Sum = &Tx_UpdateContractMsg{msg}
+		return true, err
+	case 58: // sum.validators_apply_diff_msg
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(validators.ApplyDiffMsg)
+		err := b.DecodeMessage(msg)
+		m.Sum = &Tx_ValidatorsApplyDiffMsg{msg}
+		return true, err
+	case 59: // sum.currency_create_msg
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(currency.CreateMsg)
+		err := b.DecodeMessage(msg)
+		m.Sum = &Tx_CurrencyCreateMsg{msg}
+		return true, err
+	case 69: // sum.migration_upgrade_schema_msg
+		if wire != proto.WireBytes {
+			return true, proto.ErrInternalBadWireType
+		}
+		msg := new(migration.UpgradeSchemaMsg)
+		err := b.DecodeMessage(msg)
+		m.Sum = &Tx_MigrationUpgradeSchemaMsg{msg}
 		return true, err
 	case 100: // sum.custom_create_state_indexed_msg
 		if wire != proto.WireBytes {
@@ -219,6 +353,31 @@ func _Tx_OneofSizer(msg proto.Message) (n int) {
 		n += 2 // tag and wire
 		n += proto.SizeVarint(uint64(s))
 		n += s
+	case *Tx_CreateContractMsg:
+		s := proto.Size(x.CreateContractMsg)
+		n += 2 // tag and wire
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *Tx_UpdateContractMsg:
+		s := proto.Size(x.UpdateContractMsg)
+		n += 2 // tag and wire
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *Tx_ValidatorsApplyDiffMsg:
+		s := proto.Size(x.ValidatorsApplyDiffMsg)
+		n += 2 // tag and wire
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *Tx_CurrencyCreateMsg:
+		s := proto.Size(x.CurrencyCreateMsg)
+		n += 2 // tag and wire
+		n += proto.SizeVarint(uint64(s))
+		n += s
+	case *Tx_MigrationUpgradeSchemaMsg:
+		s := proto.Size(x.MigrationUpgradeSchemaMsg)
+		n += 2 // tag and wire
+		n += proto.SizeVarint(uint64(s))
+		n += s
 	case *Tx_CustomCreateStateIndexedMsg:
 		s := proto.Size(x.CustomCreateStateIndexedMsg)
 		n += 2 // tag and wire
@@ -243,30 +402,41 @@ func init() {
 func init() { proto.RegisterFile("app/codec.proto", fileDescriptor_e43b82f4f03f64b8) }
 
 var fileDescriptor_e43b82f4f03f64b8 = []byte{
-	// 359 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x7c, 0x91, 0x41, 0x4f, 0xe2, 0x40,
-	0x14, 0xc7, 0xdb, 0xed, 0xee, 0x86, 0x1d, 0x96, 0x25, 0x99, 0xb0, 0xb1, 0x41, 0x53, 0x89, 0x5e,
-	0x88, 0xc6, 0x69, 0x02, 0x47, 0x6f, 0x90, 0x10, 0x39, 0x78, 0x69, 0xf5, 0xdc, 0x94, 0xf6, 0x31,
-	0x34, 0xda, 0x4e, 0xc3, 0x9b, 0x62, 0xbf, 0x82, 0x37, 0x3f, 0x96, 0x47, 0x8e, 0x1e, 0x0d, 0x7c,
-	0x11, 0x33, 0x1d, 0x20, 0x68, 0xd4, 0x4b, 0x33, 0xff, 0xff, 0xfc, 0xfa, 0x7e, 0xaf, 0x29, 0x69,
-	0x86, 0x79, 0xee, 0x46, 0x22, 0x86, 0x88, 0xe5, 0x73, 0x21, 0x05, 0xb5, 0xc2, 0x3c, 0x6f, 0x9f,
-	0xf3, 0x44, 0xce, 0x8a, 0x09, 0x8b, 0x44, 0xea, 0x26, 0x62, 0x71, 0x21, 0x32, 0x70, 0x1f, 0x20,
-	0x5c, 0x80, 0x5b, 0xba, 0x51, 0x88, 0xb3, 0xfd, 0x37, 0xbe, 0x85, 0x31, 0xe1, 0xf8, 0x0e, 0x6e,
-	0x71, 0xc1, 0x45, 0x75, 0x74, 0xd5, 0x69, 0xdb, 0x96, 0x6e, 0x54, 0xa0, 0x14, 0xe9, 0x3e, 0x7b,
-	0xf2, 0x68, 0x91, 0x1f, 0x37, 0x25, 0x3d, 0x23, 0x7f, 0x94, 0x33, 0x98, 0x02, 0xa0, 0xdd, 0xea,
-	0x98, 0xdd, 0x7a, 0xaf, 0xc1, 0x54, 0xc3, 0x46, 0x00, 0xe3, 0x6c, 0x2a, 0xbc, 0x9a, 0x4a, 0x23,
-	0x00, 0xa4, 0x97, 0xa4, 0xa9, 0x94, 0x01, 0x26, 0x3c, 0x0b, 0x65, 0x31, 0x07, 0xb4, 0xff, 0x77,
-	0xac, 0x6e, 0xbd, 0x47, 0x99, 0xea, 0x99, 0x2f, 0x63, 0x7f, 0x7b, 0xe5, 0xfd, 0x53, 0xd5, 0x2e,
-	0x22, 0x6d, 0x93, 0x5a, 0x5a, 0xdc, 0xcb, 0x04, 0x13, 0x6e, 0xff, 0xec, 0x58, 0xdd, 0xbf, 0xde,
-	0x2e, 0xd3, 0x3e, 0x69, 0x54, 0x4b, 0x20, 0x64, 0x71, 0x90, 0x22, 0xb7, 0xfb, 0xfb, 0x8b, 0xf8,
-	0x90, 0xc5, 0xd7, 0xc8, 0xaf, 0x0c, 0xaf, 0xae, 0xf2, 0x26, 0xd2, 0x3b, 0x72, 0xac, 0x3f, 0x2b,
-	0x88, 0xe6, 0x10, 0x4a, 0x08, 0x50, 0xaa, 0x67, 0x92, 0xc5, 0x50, 0x82, 0x1e, 0x13, 0x57, 0x63,
-	0x4e, 0x99, 0xe6, 0xd8, 0xb0, 0xe2, 0x86, 0x55, 0xf0, 0x15, 0x3c, 0xd6, 0xac, 0x1e, 0x7e, 0xa8,
-	0x29, 0x0d, 0x7d, 0xb8, 0xa6, 0xb7, 0xe4, 0x60, 0x63, 0xd9, 0x38, 0xb5, 0x4c, 0x49, 0xa0, 0x92,
-	0x1c, 0x7d, 0x29, 0xd1, 0xd3, 0x5b, 0xd1, 0x27, 0xfd, 0xe0, 0x17, 0xb1, 0xb0, 0x48, 0x07, 0xf6,
-	0xf3, 0xca, 0x31, 0x97, 0x2b, 0xc7, 0x7c, 0x5d, 0x39, 0xe6, 0xd3, 0xda, 0x31, 0x96, 0x6b, 0xc7,
-	0x78, 0x59, 0x3b, 0xc6, 0xe4, 0x77, 0xf5, 0xb3, 0xfa, 0x6f, 0x01, 0x00, 0x00, 0xff, 0xff, 0xc0,
-	0x04, 0x0e, 0xa7, 0x4a, 0x02, 0x00, 0x00,
+	// 537 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x93, 0xcf, 0x6e, 0xd3, 0x40,
+	0x10, 0xc6, 0x93, 0x06, 0xaa, 0xb2, 0xa5, 0x54, 0xb8, 0x15, 0xb8, 0x69, 0x65, 0x22, 0xb8, 0x44,
+	0x20, 0xd6, 0xa2, 0xb9, 0x00, 0x3d, 0xd1, 0xd0, 0x8a, 0x1e, 0xb8, 0x24, 0xe4, 0x8a, 0xb5, 0xf5,
+	0x8e, 0x37, 0x2b, 0x62, 0xaf, 0xe5, 0x5d, 0x87, 0xf4, 0x2d, 0xb8, 0xf0, 0x4e, 0x1c, 0x7b, 0xe4,
+	0x88, 0x92, 0x17, 0x41, 0xbb, 0x6b, 0x3b, 0x4e, 0xa0, 0x55, 0x2f, 0x96, 0x67, 0xe6, 0x37, 0xdf,
+	0x7c, 0xfb, 0x0f, 0xed, 0x92, 0x34, 0xf5, 0x43, 0x41, 0x21, 0xc4, 0x69, 0x26, 0x94, 0x70, 0x5a,
+	0x24, 0x4d, 0xdb, 0x98, 0x71, 0x35, 0xce, 0x2f, 0x71, 0x28, 0x62, 0x9f, 0x8b, 0xe9, 0x6b, 0x91,
+	0x80, 0xff, 0x1d, 0xc8, 0x14, 0xfc, 0x98, 0xb3, 0x8c, 0x28, 0x2e, 0x92, 0x7a, 0x53, 0xfb, 0xd5,
+	0x8d, 0xfc, 0xcc, 0x0f, 0x89, 0x1c, 0xaf, 0xc0, 0xfe, 0x6d, 0x70, 0x9e, 0x65, 0x90, 0x84, 0x57,
+	0x77, 0x6e, 0x88, 0xf3, 0x89, 0xe2, 0x92, 0xb3, 0x3b, 0xdb, 0x91, 0x9c, 0xc9, 0x15, 0xf8, 0xcd,
+	0x2d, 0xf0, 0x94, 0x4c, 0x38, 0x25, 0x4a, 0x64, 0xab, 0x2d, 0xfb, 0x4c, 0x30, 0x61, 0x7e, 0x7d,
+	0xfd, 0x57, 0x66, 0xb5, 0x7d, 0xa9, 0x44, 0x5c, 0x67, 0x9f, 0xff, 0xdc, 0x44, 0x1b, 0x5f, 0x66,
+	0xce, 0x4b, 0xf4, 0x40, 0x6f, 0x44, 0x10, 0x01, 0x48, 0xb7, 0xd9, 0x69, 0x76, 0xb7, 0x8f, 0x77,
+	0xb0, 0xce, 0xe0, 0x73, 0x80, 0x8b, 0x24, 0x12, 0x83, 0x2d, 0x1d, 0x9d, 0x03, 0x48, 0xe7, 0x04,
+	0xed, 0x6a, 0x97, 0x81, 0xe4, 0x2c, 0x21, 0x2a, 0xcf, 0x40, 0xba, 0x1b, 0x9d, 0x56, 0x77, 0xfb,
+	0xd8, 0xc1, 0x3a, 0x8f, 0x87, 0x8a, 0x0e, 0xcb, 0xd2, 0xe0, 0x91, 0x4e, 0x55, 0xa1, 0x74, 0xda,
+	0x68, 0xab, 0xdc, 0x13, 0xf7, 0x5e, 0xa7, 0xd5, 0x7d, 0x38, 0xa8, 0x62, 0xa7, 0x87, 0x76, 0x8c,
+	0x09, 0x09, 0x09, 0x0d, 0x62, 0xc9, 0xdc, 0x5e, 0xdd, 0xc8, 0x10, 0x12, 0xfa, 0x59, 0xb2, 0x4f,
+	0x8d, 0xc1, 0xb6, 0x8e, 0x8b, 0xd0, 0x39, 0x43, 0x7b, 0x61, 0x06, 0x44, 0x41, 0x10, 0x8a, 0x44,
+	0x65, 0x24, 0x54, 0xa6, 0xf5, 0xad, 0x69, 0xdd, 0xc3, 0xa5, 0x38, 0xee, 0x1b, 0xc8, 0x0a, 0x3c,
+	0xb6, 0x1d, 0xfd, 0xa2, 0xa1, 0x90, 0xc9, 0x53, 0xfa, 0x8f, 0xcc, 0xbb, 0x75, 0x99, 0x91, 0x81,
+	0x0a, 0x19, 0xdb, 0x51, 0x97, 0x19, 0xa1, 0x83, 0xe5, 0xa1, 0x04, 0x24, 0x4d, 0x27, 0x57, 0x01,
+	0xe5, 0x51, 0x64, 0xc4, 0xde, 0x1b, 0x31, 0x17, 0x2f, 0x09, 0xfc, 0x41, 0x13, 0x1f, 0x79, 0x14,
+	0x59, 0xc5, 0x27, 0xcb, 0x52, 0xbd, 0x62, 0x16, 0x59, 0x5c, 0xbd, 0xa0, 0x58, 0xad, 0x16, 0x3c,
+	0x29, 0xdc, 0x95, 0xb5, 0xb5, 0x45, 0x16, 0xd9, 0x2a, 0xe9, 0x7c, 0x45, 0x47, 0xd5, 0x03, 0x09,
+	0xf2, 0x94, 0x65, 0x84, 0x42, 0x20, 0xc3, 0x31, 0xc4, 0xc4, 0xe8, 0x9d, 0x19, 0xbd, 0x43, 0x5c,
+	0x41, 0x78, 0x64, 0xa1, 0xa1, 0x61, 0xac, 0xee, 0x41, 0x55, 0x5d, 0x2f, 0x3a, 0xdf, 0xd0, 0x33,
+	0x7b, 0xc5, 0x4a, 0x93, 0x52, 0xe9, 0x2f, 0x4f, 0x28, 0xcc, 0xc0, 0x1e, 0x29, 0x35, 0x23, 0x5e,
+	0x60, 0xcb, 0x15, 0x86, 0xfb, 0x26, 0x18, 0x6a, 0xf8, 0xc2, 0xb2, 0x76, 0xd4, 0xa1, 0xa5, 0x2c,
+	0xb4, 0x56, 0x76, 0x46, 0xe8, 0x69, 0x79, 0xf0, 0x76, 0xa6, 0x1d, 0xa6, 0x87, 0x80, 0x19, 0x72,
+	0x74, 0xe3, 0x10, 0xab, 0xbe, 0x1f, 0xfe, 0x27, 0x7f, 0x7a, 0x1f, 0xb5, 0x64, 0x1e, 0x9f, 0xba,
+	0xbf, 0xe6, 0x5e, 0xf3, 0x7a, 0xee, 0x35, 0xff, 0xcc, 0xbd, 0xe6, 0x8f, 0x85, 0xd7, 0xb8, 0x5e,
+	0x78, 0x8d, 0xdf, 0x0b, 0xaf, 0x71, 0xb9, 0x69, 0x1e, 0x4e, 0xef, 0x6f, 0x00, 0x00, 0x00, 0xff,
+	0xff, 0x5b, 0x35, 0xa3, 0x89, 0x9b, 0x04, 0x00, 0x00,
 }
 
 func (m *Tx) Marshal() (dAtA []byte, err error) {
@@ -284,18 +454,8 @@ func (m *Tx) MarshalTo(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.Multisig) > 0 {
-		for _, b := range m.Multisig {
-			dAtA[i] = 0x22
-			i++
-			i = encodeVarintCodec(dAtA, i, uint64(len(b)))
-			i += copy(dAtA[i:], b)
-		}
-	}
 	if m.CashFees != nil {
-		dAtA[i] = 0xa2
-		i++
-		dAtA[i] = 0x1
+		dAtA[i] = 0xa
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.CashFees.Size()))
 		n1, err := m.CashFees.MarshalTo(dAtA[i:])
@@ -306,9 +466,7 @@ func (m *Tx) MarshalTo(dAtA []byte) (int, error) {
 	}
 	if len(m.SigsSignatures) > 0 {
 		for _, msg := range m.SigsSignatures {
-			dAtA[i] = 0xaa
-			i++
-			dAtA[i] = 0x1
+			dAtA[i] = 0x12
 			i++
 			i = encodeVarintCodec(dAtA, i, uint64(msg.Size()))
 			n, err := msg.MarshalTo(dAtA[i:])
@@ -316,6 +474,14 @@ func (m *Tx) MarshalTo(dAtA []byte) (int, error) {
 				return 0, err
 			}
 			i += n
+		}
+	}
+	if len(m.Multisig) > 0 {
+		for _, b := range m.Multisig {
+			dAtA[i] = 0x22
+			i++
+			i = encodeVarintCodec(dAtA, i, uint64(len(b)))
+			i += copy(dAtA[i:], b)
 		}
 	}
 	if m.Sum != nil {
@@ -344,6 +510,86 @@ func (m *Tx_CashSendMsg) MarshalTo(dAtA []byte) (int, error) {
 	}
 	return i, nil
 }
+func (m *Tx_CreateContractMsg) MarshalTo(dAtA []byte) (int, error) {
+	i := 0
+	if m.CreateContractMsg != nil {
+		dAtA[i] = 0xc2
+		i++
+		dAtA[i] = 0x3
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.CreateContractMsg.Size()))
+		n4, err := m.CreateContractMsg.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n4
+	}
+	return i, nil
+}
+func (m *Tx_UpdateContractMsg) MarshalTo(dAtA []byte) (int, error) {
+	i := 0
+	if m.UpdateContractMsg != nil {
+		dAtA[i] = 0xca
+		i++
+		dAtA[i] = 0x3
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.UpdateContractMsg.Size()))
+		n5, err := m.UpdateContractMsg.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n5
+	}
+	return i, nil
+}
+func (m *Tx_ValidatorsApplyDiffMsg) MarshalTo(dAtA []byte) (int, error) {
+	i := 0
+	if m.ValidatorsApplyDiffMsg != nil {
+		dAtA[i] = 0xd2
+		i++
+		dAtA[i] = 0x3
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.ValidatorsApplyDiffMsg.Size()))
+		n6, err := m.ValidatorsApplyDiffMsg.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n6
+	}
+	return i, nil
+}
+func (m *Tx_CurrencyCreateMsg) MarshalTo(dAtA []byte) (int, error) {
+	i := 0
+	if m.CurrencyCreateMsg != nil {
+		dAtA[i] = 0xda
+		i++
+		dAtA[i] = 0x3
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.CurrencyCreateMsg.Size()))
+		n7, err := m.CurrencyCreateMsg.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n7
+	}
+	return i, nil
+}
+func (m *Tx_MigrationUpgradeSchemaMsg) MarshalTo(dAtA []byte) (int, error) {
+	i := 0
+	if m.MigrationUpgradeSchemaMsg != nil {
+		dAtA[i] = 0xaa
+		i++
+		dAtA[i] = 0x4
+		i++
+		i = encodeVarintCodec(dAtA, i, uint64(m.MigrationUpgradeSchemaMsg.Size()))
+		n8, err := m.MigrationUpgradeSchemaMsg.MarshalTo(dAtA[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n8
+	}
+	return i, nil
+}
 func (m *Tx_CustomCreateStateIndexedMsg) MarshalTo(dAtA []byte) (int, error) {
 	i := 0
 	if m.CustomCreateStateIndexedMsg != nil {
@@ -352,11 +598,11 @@ func (m *Tx_CustomCreateStateIndexedMsg) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0x6
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.CustomCreateStateIndexedMsg.Size()))
-		n4, err := m.CustomCreateStateIndexedMsg.MarshalTo(dAtA[i:])
+		n9, err := m.CustomCreateStateIndexedMsg.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n4
+		i += n9
 	}
 	return i, nil
 }
@@ -368,11 +614,11 @@ func (m *Tx_CreateCustomStateMsg) MarshalTo(dAtA []byte) (int, error) {
 		dAtA[i] = 0x6
 		i++
 		i = encodeVarintCodec(dAtA, i, uint64(m.CreateCustomStateMsg.Size()))
-		n5, err := m.CreateCustomStateMsg.MarshalTo(dAtA[i:])
+		n10, err := m.CreateCustomStateMsg.MarshalTo(dAtA[i:])
 		if err != nil {
 			return 0, err
 		}
-		i += n5
+		i += n10
 	}
 	return i, nil
 }
@@ -391,20 +637,20 @@ func (m *Tx) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if len(m.Multisig) > 0 {
-		for _, b := range m.Multisig {
-			l = len(b)
-			n += 1 + l + sovCodec(uint64(l))
-		}
-	}
 	if m.CashFees != nil {
 		l = m.CashFees.Size()
-		n += 2 + l + sovCodec(uint64(l))
+		n += 1 + l + sovCodec(uint64(l))
 	}
 	if len(m.SigsSignatures) > 0 {
 		for _, e := range m.SigsSignatures {
 			l = e.Size()
-			n += 2 + l + sovCodec(uint64(l))
+			n += 1 + l + sovCodec(uint64(l))
+		}
+	}
+	if len(m.Multisig) > 0 {
+		for _, b := range m.Multisig {
+			l = len(b)
+			n += 1 + l + sovCodec(uint64(l))
 		}
 	}
 	if m.Sum != nil {
@@ -421,6 +667,66 @@ func (m *Tx_CashSendMsg) Size() (n int) {
 	_ = l
 	if m.CashSendMsg != nil {
 		l = m.CashSendMsg.Size()
+		n += 2 + l + sovCodec(uint64(l))
+	}
+	return n
+}
+func (m *Tx_CreateContractMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.CreateContractMsg != nil {
+		l = m.CreateContractMsg.Size()
+		n += 2 + l + sovCodec(uint64(l))
+	}
+	return n
+}
+func (m *Tx_UpdateContractMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.UpdateContractMsg != nil {
+		l = m.UpdateContractMsg.Size()
+		n += 2 + l + sovCodec(uint64(l))
+	}
+	return n
+}
+func (m *Tx_ValidatorsApplyDiffMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.ValidatorsApplyDiffMsg != nil {
+		l = m.ValidatorsApplyDiffMsg.Size()
+		n += 2 + l + sovCodec(uint64(l))
+	}
+	return n
+}
+func (m *Tx_CurrencyCreateMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.CurrencyCreateMsg != nil {
+		l = m.CurrencyCreateMsg.Size()
+		n += 2 + l + sovCodec(uint64(l))
+	}
+	return n
+}
+func (m *Tx_MigrationUpgradeSchemaMsg) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.MigrationUpgradeSchemaMsg != nil {
+		l = m.MigrationUpgradeSchemaMsg.Size()
 		n += 2 + l + sovCodec(uint64(l))
 	}
 	return n
@@ -492,39 +798,7 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: Tx: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Multisig", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCodec
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthCodec
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex < 0 {
-				return ErrInvalidLengthCodec
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Multisig = append(m.Multisig, make([]byte, postIndex-iNdEx))
-			copy(m.Multisig[len(m.Multisig)-1], dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 20:
+		case 1:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field CashFees", wireType)
 			}
@@ -560,7 +834,7 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 21:
+		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field SigsSignatures", wireType)
 			}
@@ -593,6 +867,38 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 			if err := m.SigsSignatures[len(m.SigsSignatures)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Multisig", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Multisig = append(m.Multisig, make([]byte, postIndex-iNdEx))
+			copy(m.Multisig[len(m.Multisig)-1], dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 51:
 			if wireType != 2 {
@@ -628,6 +934,181 @@ func (m *Tx) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			m.Sum = &Tx_CashSendMsg{v}
+			iNdEx = postIndex
+		case 56:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CreateContractMsg", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &multisig.CreateMsg{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Sum = &Tx_CreateContractMsg{v}
+			iNdEx = postIndex
+		case 57:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UpdateContractMsg", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &multisig.UpdateMsg{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Sum = &Tx_UpdateContractMsg{v}
+			iNdEx = postIndex
+		case 58:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ValidatorsApplyDiffMsg", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &validators.ApplyDiffMsg{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Sum = &Tx_ValidatorsApplyDiffMsg{v}
+			iNdEx = postIndex
+		case 59:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CurrencyCreateMsg", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &currency.CreateMsg{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Sum = &Tx_CurrencyCreateMsg{v}
+			iNdEx = postIndex
+		case 69:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MigrationUpgradeSchemaMsg", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCodec
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCodec
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCodec
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &migration.UpgradeSchemaMsg{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Sum = &Tx_MigrationUpgradeSchemaMsg{v}
 			iNdEx = postIndex
 		case 100:
 			if wireType != 2 {
