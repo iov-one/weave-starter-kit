@@ -11,11 +11,11 @@ import (
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands/server"
 	"github.com/iov-one/weave/crypto"
+
 	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/currency"
-	"github.com/iov-one/weave/x/msgfee"
 	"github.com/iov-one/weave/x/multisig"
 	"github.com/iov-one/weave/x/validators"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -84,8 +84,10 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
 		"initialize_schema": []dict{
 			{"pkg": "cash", "ver": 1},
 			{"pkg": "sigs", "ver": 1},
-			{"pkg": "validators", "ver": 1},
+			{"pkg": "multisig", "ver": 1},
 			{"pkg": "utils", "ver": 1},
+			{"pkg": "migration", "ver": 1},
+			{"pkg": "validators", "ver": 1},
 		},
 	})
 }
@@ -98,7 +100,7 @@ func GenerateApp(options *server.Options) (abci.Application, error) {
 		dbPath = filepath.Join(options.Home, "abci.db")
 	}
 
-	stack := Stack(options.MinFee)
+	stack := Stack(nil, options.MinFee)
 	application, err := Application("project", stack, TxDecoder, dbPath, options.Debug)
 	if err != nil {
 		return nil, err
@@ -110,12 +112,11 @@ func GenerateApp(options *server.Options) (abci.Application, error) {
 // DecorateApp adds initializers and Logger to an Application
 func DecorateApp(application app.BaseApp, logger log.Logger) app.BaseApp {
 	application.WithInit(app.ChainInitializers(
-		&migration.Initializer{},
-		&multisig.Initializer{},
 		&cash.Initializer{},
+		&multisig.Initializer{},
 		&currency.Initializer{},
+		&migration.Initializer{},
 		&validators.Initializer{},
-		&msgfee.Initializer{},
 	))
 	application.WithLogger(logger)
 	return application
@@ -126,7 +127,7 @@ func DecorateApp(application app.BaseApp, logger log.Logger) app.BaseApp {
 // You can give coins to this address and return the recovery
 // phrase to the user to access them.
 func GenerateCoinKey() (weave.Address, string, error) {
-	// XXX: we need to generate BIP39 recovery phrases in crypto
+	// TODO implement BIP39 recovery phrases
 	privKey := crypto.GenPrivKeyEd25519()
 	addr := privKey.PublicKey().Address()
 	return addr, "TODO: add a recovery phrase", nil
