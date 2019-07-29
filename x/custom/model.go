@@ -31,7 +31,7 @@ func (m *CustomStateIndexed) Validate() error {
 		errs = errors.AppendField(errs, "DeletedAt", m.DeletedAt.Validate())
 	} else if m.DeletedAt == 0 {
 		errs = errors.Append(errs,
-			errors.Field("DeletedAt", errors.ErrEmpty, "missing created at"))
+			errors.Field("DeletedAt", errors.ErrEmpty, "missing deleted at"))
 	}
 	return errs
 }
@@ -61,7 +61,7 @@ func (m *CustomState) Validate() error {
 		errs = errors.AppendField(errs, "CreatedAt", m.CreatedAt.Validate())
 	} else if m.CreatedAt == 0 {
 		errs = errors.Append(errs,
-			errors.Field("DeletedAt", errors.ErrEmpty, "missing created at"))
+			errors.Field("DeletedAt", errors.ErrEmpty, "missing deleted at"))
 	}
 
 	return errs
