@@ -10,13 +10,16 @@ import (
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store/iavl"
 	"github.com/iov-one/weave/x"
-	"github.com/iov-one/weave/x/msgfee"
+	"github.com/iov-one/weave/x/cash"
+	"github.com/iov-one/weave/x/currency"
 	"github.com/iov-one/weave/x/multisig"
 	"github.com/iov-one/weave/x/sigs"
 	"github.com/iov-one/weave/x/utils"
+	"github.com/iov-one/weave/x/validators"
 )
 
 // Authenticator returns authentication with multisigs
@@ -25,47 +28,71 @@ func Authenticator() x.Authenticator {
 	return x.ChainAuth(sigs.Authenticate{}, multisig.Authenticate{})
 }
 
+// CashControl returns a controller for cash functions
+func CashControl() cash.Controller {
+	return cash.NewController(cash.NewBucket())
+}
+
 // Chain returns a chain of decorators, to handle authentication,
 // fees, logging, and recovery
 func Chain(authFn x.Authenticator, minFee coin.Coin) app.Decorators {
 
-	// TODO implement orderbook controller
 	return app.ChainDecorators(
 		utils.NewLogging(),
 		utils.NewRecovery(),
 		utils.NewKeyTagger(),
+		// on CheckTx, bad tx don't affect state
 		utils.NewSavepoint().OnCheck(),
 		sigs.NewDecorator(),
 		multisig.NewDecorator(authFn),
+		cash.NewFeeDecorator(authFn, CashControl()),
 		utils.NewSavepoint().OnDeliver(),
-		msgfee.NewFeeDecorator(),
 	)
 }
 
+/* custom app uses below weave modules apart from x/custom
+	- cash
+	- sigs
+	- multisig
+	- currency
+	- migration
+	- validators
+*/ 
+
 // Router returns a default router
-func Router(authFn x.Authenticator) *app.Router {
+func Router(authFn x.Authenticator, issuer weave.Address) *app.Router {
 	r := app.NewRouter()
-	// TODO implement orderbook router
+
+	cash.RegisterRoutes(r, authFn, CashControl())
+	sigs.RegisterRoutes(r, authFn)
+	multisig.RegisterRoutes(r, authFn)
+	currency.RegisterRoutes(r, authFn, issuer)
+	migration.RegisterRoutes(r, authFn)
+	validators.RegisterRoutes(r, authFn)
 	return r
 }
 
 // QueryRouter returns a default query router,
-// allowing access to "/auth", "/contracts" and "/"
+// allowing access to "/auth", "/contracts", "/wallets", "/validators" and "/"
 func QueryRouter() weave.QueryRouter {
 	r := weave.NewQueryRouter()
 	r.RegisterAll(
+		cash.RegisterQuery,
 		sigs.RegisterQuery,
 		multisig.RegisterQuery,
+		currency.RegisterQuery,
+		migration.RegisterQuery,
 		orm.RegisterQuery,
+		validators.RegisterQuery,
 	)
 	return r
 }
 
 // Stack wires up a standard router with a standard decorator
 // chain. This can be passed into BaseApp.
-func Stack(minFee coin.Coin) weave.Handler {
+func Stack(issuer weave.Address, minFee coin.Coin) weave.Handler {
 	authFn := Authenticator()
-	return Chain(authFn, minFee).WithHandler(Router(authFn))
+	return Chain(authFn, minFee).WithHandler(Router(authFn, issuer))
 }
 
 // CommitKVStore returns an initialized KVStore that persists
