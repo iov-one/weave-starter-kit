@@ -33,7 +33,6 @@ func (m *CustomStateIndexed) Validate() error {
 		errs = errors.Append(errs,
 			errors.Field("DeletedAt", errors.ErrEmpty, "missing created at"))
 	}
-	// TODO add custom validation for your state fields
 	return errs
 }
 
