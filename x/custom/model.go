@@ -20,18 +20,18 @@ func (m *CustomStateIndexed) Validate() error {
 	errs = errors.AppendField(errs, "ID", isGenID(m.ID, true))
 	errs = errors.AppendField(errs, "CustomString", customStringValidation(m.CustomString))
 	if m.CustomByte == nil {
-		errs = errors.Append(errs, errors.Field("CustomByte", errors.ErrEmpty, "missing custom byte"))
+		errs = errors.Append(errs, errors.Field("CustomByte", errors.ErrEmpty, "required"))
 	}
 	if m.InnerStateEnum != InnerStateEnum_CaseOne && m.InnerStateEnum != InnerStateEnum_CaseTwo {
 		errs = errors.Append(errs,
-			errors.Field("InnerStateEnum", errors.ErrState, "invalid inner state enum"))
+			errors.Field("InnerStateEnum", errors.ErrState, "invalid"))
 	}
 
 	if err := m.DeletedAt.Validate(); err != nil {
 		errs = errors.AppendField(errs, "DeletedAt", m.DeletedAt.Validate())
 	} else if m.DeletedAt == 0 {
 		errs = errors.Append(errs,
-			errors.Field("DeletedAt", errors.ErrEmpty, "missing deleted at"))
+			errors.Field("DeletedAt", errors.ErrEmpty, "required"))
 	}
 	return errs
 }
@@ -55,13 +55,13 @@ func (m *CustomState) Validate() error {
 
 	errs = errors.AppendField(errs, "Metadata", m.Metadata.Validate())
 	if m.InnerState == nil {
-		errs = errors.Append(errs, errors.Field("InnerState", errors.ErrEmpty, "missing inner state"))
+		errs = errors.Append(errs, errors.Field("InnerState", errors.ErrEmpty, "required"))
 	}
 	if err := m.CreatedAt.Validate(); err != nil {
 		errs = errors.AppendField(errs, "CreatedAt", m.CreatedAt.Validate())
 	} else if m.CreatedAt == 0 {
 		errs = errors.Append(errs,
-			errors.Field("DeletedAt", errors.ErrEmpty, "missing deleted at"))
+			errors.Field("CreatedAt", errors.ErrEmpty, "missing"))
 	}
 
 	return errs
@@ -84,10 +84,10 @@ func isGenID(id []byte, allowEmpty bool) error {
 		if allowEmpty {
 			return nil
 		}
-		return errors.Wrap(errors.ErrEmpty, "missing id")
+		return errors.Wrap(errors.ErrEmpty, "required")
 	}
 	if len(id) != 8 {
-		return errors.Wrap(errors.ErrInput, "id must be 8 bytes")
+		return errors.Wrap(errors.ErrInput, "must be 8 bytes")
 	}
 	return nil
 }
