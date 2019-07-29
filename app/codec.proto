@@ -10,14 +10,22 @@ import "x/custom/codec.proto";
 // Tx contains the message
 message Tx {
   // fee info, autogenerates GetFees()
-  cash.FeeInfo cash_fees = 20;
-  repeated sigs.StdSignature sigs_signatures = 21;
+  cash.FeeInfo cash_fees = 1;
+  repeated sigs.StdSignature sigs_signatures = 2;
   // ID of a multisig contract.
   repeated bytes multisig = 4;
   // msg is a sum type over all allowed messages on this chain.
   oneof sum {
     cash.SendMsg cash_send_msg = 51;
-    // space here to allow many more....
+    
+    multisig.CreateContractMsg create_contract_msg = 56;
+    multisig.UpdateContractMsg update_contract_msg = 57;
+
+    validators.ApplyDiffMsg validators_apply_diff_msg = 58;
+
+    currency.CreateMsg currency_create_msg = 59;
+
+    migration.UpgradeSchemaMsg migration_upgrade_schema_msg = 69;
 
     custom.CreateCustomStateIndexedMsg custom_create_state_indexed_msg = 100;
     custom.CreateCustomStateMsg create_custom_state_msg = 101;
