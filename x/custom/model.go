@@ -2,8 +2,16 @@ package custom
 
 import (
 	"github.com/iov-one/weave/errors"
+	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 )
+
+func init() {
+	// Migration needs to be registered for every message introduced in the codec.
+	// This is the convention to message versioning.
+	migration.MustRegister(1, &StateIndexed{}, migration.NoModification)
+	migration.MustRegister(1, &State{}, migration.NoModification)
+}
 
 var _ orm.Model = (*StateIndexed)(nil)
 
@@ -26,12 +34,7 @@ func (m *StateIndexed) Validate() error {
 	if m.InnerStateEnum != InnerStateEnum_CaseOne && m.InnerStateEnum != InnerStateEnum_CaseTwo {
 		errs = errors.AppendField(errs, "InnerStateEnum", errors.ErrState)
 	}
-
-	if err := m.DeletedAt.Validate(); err != nil {
-		errs = errors.AppendField(errs, "DeletedAt", m.DeletedAt.Validate())
-	} else if m.DeletedAt == 0 {
-		errs = errors.AppendField(errs, "DeletedAt", errors.ErrEmpty)
-	}
+	
 	return errs
 }
 
