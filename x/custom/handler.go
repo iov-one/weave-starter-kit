@@ -83,7 +83,8 @@ func (h StateIndexedHandler) Deliver(ctx weave.Context, store weave.KVStore, tx 
 		Byte: msg.Byte,
 	}
 
-	if _, err = h.b.Create(store, stateIndexed); err != nil {
+	obj, err := h.b.Create(store, stateIndexed)
+	if err != nil {
 		return nil, errors.Wrap(err, "cannot store indexed state")
 	}
 
@@ -91,7 +92,7 @@ func (h StateIndexedHandler) Deliver(ctx weave.Context, store weave.KVStore, tx 
 		return nil, err
 	}
 
-	return &weave.DeliverResult{Data: stateIndexed.ID}, err
+	return &weave.DeliverResult{Data: obj.Key()}, err
 }
 
 // ------------------- CustomState HANDLER -------------------
