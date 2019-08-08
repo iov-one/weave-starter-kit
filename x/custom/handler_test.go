@@ -49,6 +49,23 @@ func TestCreateTimedState(t *testing.T) {
 				"DeletedAt":      nil,
 			},
 		},
+		"failure, empty message": {
+			msg: &CreateTimedStateMsg{},
+			wantCheckErrs: map[string]*errors.Error{
+				"Metadata":       errors.ErrMetadata,
+				"InnerStateEnum": errors.ErrState,
+				"Str":            errors.ErrEmpty,
+				"Byte":           errors.ErrEmpty,
+				"DeletedAt":      nil,
+			},
+			wantDeliverErrs: map[string]*errors.Error{
+				"Metadata":       errors.ErrMetadata,
+				"InnerStateEnum": errors.ErrState,
+				"Str":            errors.ErrEmpty,
+				"Byte":           errors.ErrEmpty,
+				"DeletedAt":      nil,
+			},
+		},
 	}
 	for testName, tc := range cases {
 		t.Run(testName, func(t *testing.T) {
@@ -80,5 +97,4 @@ func TestCreateTimedState(t *testing.T) {
 			}
 		})
 	}
-
 }
