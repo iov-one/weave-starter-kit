@@ -11,24 +11,24 @@ import (
 	"github.com/iov-one/weave/weavetest/assert"
 )
 
-func TestCreateStateIndexed(t *testing.T) {
+func TestCreateTimedState(t *testing.T) {
 
 	meta := &weave.Metadata{Schema: 1}
 
 	cases := map[string]struct {
 		msg             weave.Msg
-		expected        *StateIndexed
+		expected        *TimedState
 		wantCheckErrs   map[string]*errors.Error
 		wantDeliverErrs map[string]*errors.Error
 	}{
 		"success": {
-			msg: &CreateStateIndexedMsg{
+			msg: &CreateTimedStateMsg{
 				Metadata:       meta,
 				InnerStateEnum: InnerStateEnum_CaseOne,
 				Str:            "cstm_str",
 				Byte:           []byte{0, 1},
 			},
-			expected: &StateIndexed{
+			expected: &TimedState{
 				Metadata:       meta,
 				InnerStateEnum: InnerStateEnum_CaseOne,
 				Str:            "cstm_str",
@@ -54,9 +54,9 @@ func TestCreateStateIndexed(t *testing.T) {
 		t.Run(testName, func(t *testing.T) {
 			auth := &weavetest.Auth{}
 
-			h := NewStateIndexedHandler(auth)
+			h := NewTimedStateHandler(auth)
 			kv := store.MemStore()
-			bucket := NewStateIndexedBucket()
+			bucket := NewTimedStateBucket()
 			migration.MustInitPkg(kv, packageName)
 
 			tx := &weavetest.Tx{Msg: tc.msg}
@@ -73,7 +73,7 @@ func TestCreateStateIndexed(t *testing.T) {
 			}
 
 			if tc.expected != nil {
-				stored, err := bucket.GetStateIndexed(kv, res.Data)
+				stored, err := bucket.GetTimedState(kv, res.Data)
 
 				assert.Nil(t, err)
 				assert.Equal(t, tc.expected, stored)

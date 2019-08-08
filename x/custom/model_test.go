@@ -11,7 +11,7 @@ import (
 	"github.com/iov-one/weave/weavetest/assert"
 )
 
-func TestValidateStateIndexed(t *testing.T) {
+func TestValidateTimedState(t *testing.T) {
 	now := weave.AsUnixTime(time.Now())
 
 	cases := map[string]struct {
@@ -19,7 +19,7 @@ func TestValidateStateIndexed(t *testing.T) {
 		wantErrs map[string]*errors.Error
 	}{
 		"success, with id": {
-			model: &StateIndexed{
+			model: &TimedState{
 				Metadata:       &weave.Metadata{Schema: 1},
 				InnerStateEnum: InnerStateEnum_CaseOne,
 				Str:            "cstm_string",
@@ -35,7 +35,7 @@ func TestValidateStateIndexed(t *testing.T) {
 			},
 		},
 		"success, no id": {
-			model: &StateIndexed{
+			model: &TimedState{
 				Metadata:       &weave.Metadata{Schema: 1},
 				InnerStateEnum: InnerStateEnum_CaseOne,
 				Str:            "cstm_string",
@@ -51,7 +51,7 @@ func TestValidateStateIndexed(t *testing.T) {
 			},
 		},
 		"failure, missing metadata": {
-			model: &StateIndexed{
+			model: &TimedState{
 				Str:            "cstm_string",
 				Byte:           []byte{0, 1},
 				InnerStateEnum: InnerStateEnum_CaseOne,
@@ -66,7 +66,7 @@ func TestValidateStateIndexed(t *testing.T) {
 			},
 		},
 		"failure, missing str": {
-			model: &StateIndexed{
+			model: &TimedState{
 				Metadata:       &weave.Metadata{Schema: 1},
 				Byte:           []byte{0, 1},
 				InnerStateEnum: InnerStateEnum_CaseOne,
@@ -81,7 +81,7 @@ func TestValidateStateIndexed(t *testing.T) {
 			},
 		},
 		"failure, str does not begin with 'cstm'": {
-			model: &StateIndexed{
+			model: &TimedState{
 				Metadata:       &weave.Metadata{Schema: 1},
 				Str:            "string",
 				Byte:           []byte{0, 1},
@@ -97,7 +97,7 @@ func TestValidateStateIndexed(t *testing.T) {
 			},
 		},
 		"failure, missing inner state enum": {
-			model: &StateIndexed{
+			model: &TimedState{
 				Metadata:  &weave.Metadata{Schema: 1},
 				Str:       "cstm_string",
 				Byte:      []byte{0, 1},
@@ -112,7 +112,7 @@ func TestValidateStateIndexed(t *testing.T) {
 			},
 		},
 		"failure, missing custom byte": {
-			model: &StateIndexed{
+			model: &TimedState{
 				Metadata:       &weave.Metadata{Schema: 1},
 				Str:            "cstm_string",
 				InnerStateEnum: InnerStateEnum_CaseOne,

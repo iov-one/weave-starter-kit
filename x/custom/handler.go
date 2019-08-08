@@ -16,7 +16,7 @@ const (
 
 // RegisterQuery registers buckets for querying.
 func RegisterQuery(qr weave.QueryRouter) {
-	NewStateIndexedBucket().Register("indexedStates", qr)
+	NewTimedStateBucket().Register("indexedStates", qr)
 	NewStateBucket().Register("states", qr)
 }
 
@@ -24,31 +24,31 @@ func RegisterQuery(qr weave.QueryRouter) {
 func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
 	r = migration.SchemaMigratingRegistry(packageName, r)
 
-	r.Handle(&CreateStateIndexedMsg{}, NewStateIndexedHandler(auth))
+	r.Handle(&CreateTimedStateMsg{}, NewTimedStateHandler(auth))
 	r.Handle(&CreateStateMsg{}, NewStateHandler(auth))
 }
 
-// ------------------- StateIndexed HANDLER -------------------
+// ------------------- TimedState HANDLER -------------------
 
-// StateIndexedHandler will handle creating custom indexed state buckets
-type StateIndexedHandler struct {
+// TimedStateHandler will handle creating custom indexed state buckets
+type TimedStateHandler struct {
 	auth x.Authenticator
-	b   *StateIndexedBucket
+	b    *TimedStateBucket
 }
 
-var _ weave.Handler = StateIndexedHandler{}
+var _ weave.Handler = TimedStateHandler{}
 
-// NewStateIndexedHandler creates a handler
-func NewStateIndexedHandler(auth x.Authenticator) weave.Handler {
-	return StateIndexedHandler{
+// NewTimedStateHandler creates a handler
+func NewTimedStateHandler(auth x.Authenticator) weave.Handler {
+	return TimedStateHandler{
 		auth: auth,
-		b:   NewStateIndexedBucket(),
+		b:    NewTimedStateBucket(),
 	}
 }
 
 // validate does all common pre-processing between Check and Deliver
-func (h StateIndexedHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateStateIndexedMsg, error) {
-	var msg CreateStateIndexedMsg
+func (h TimedStateHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateTimedStateMsg, error) {
+	var msg CreateTimedStateMsg
 
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
@@ -59,7 +59,7 @@ func (h StateIndexedHandler) validate(ctx weave.Context, db weave.KVStore, tx we
 
 // Check just verifies it is properly formed and returns
 // the cost of executing it.
-func (h StateIndexedHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+func (h TimedStateHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
 	_, err := h.validate(ctx, store, tx)
 	if err != nil {
 		return nil, err
@@ -69,21 +69,21 @@ func (h StateIndexedHandler) Check(ctx weave.Context, store weave.KVStore, tx we
 }
 
 // Deliver creates an custom state and saves if all preconditions are met
-func (h StateIndexedHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+func (h TimedStateHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, store, tx)
-	
+
 	if err != nil {
 		return nil, err
 	}
 
-	stateIndexed := &StateIndexed{
-		Metadata: &weave.Metadata{},
+	TimedState := &TimedState{
+		Metadata:       &weave.Metadata{},
 		InnerStateEnum: msg.InnerStateEnum,
-		Str: msg.Str,
-		Byte: msg.Byte,
+		Str:            msg.Str,
+		Byte:           msg.Byte,
 	}
 
-	obj, err := h.b.Create(store, stateIndexed)
+	obj, err := h.b.Create(store, TimedState)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot store indexed state")
 	}
@@ -100,7 +100,7 @@ func (h StateIndexedHandler) Deliver(ctx weave.Context, store weave.KVStore, tx 
 // StateHandler will handle creating custom state buckets
 type StateHandler struct {
 	auth x.Authenticator
-	b   *StateBucket
+	b    *StateBucket
 }
 
 var _ weave.Handler = StateHandler{}
@@ -109,7 +109,7 @@ var _ weave.Handler = StateHandler{}
 func NewStateHandler(auth x.Authenticator) weave.Handler {
 	return StateHandler{
 		auth: auth,
-		b:   NewStateBucket(),
+		b:    NewStateBucket(),
 	}
 }
 
@@ -138,7 +138,7 @@ func (h StateHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx)
 // Deliver creates an custom state and saves if all preconditions are met
 func (h StateHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, store, tx)
-	
+
 	if err != nil {
 		return nil, err
 	}
@@ -146,10 +146,10 @@ func (h StateHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 	now := weave.AsUnixTime(time.Now())
 
 	state := &State{
-		Metadata: &weave.Metadata{},
+		Metadata:   &weave.Metadata{},
 		InnerState: msg.InnerState,
-		Address: msg.Address,
-		CreatedAt: now,
+		Address:    msg.Address,
+		CreatedAt:  now,
 	}
 
 	_, err = h.b.Put(store, nil, state)

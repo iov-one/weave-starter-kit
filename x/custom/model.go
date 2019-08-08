@@ -9,14 +9,14 @@ import (
 func init() {
 	// Migration needs to be registered for every message introduced in the codec.
 	// This is the convention to message versioning.
-	migration.MustRegister(1, &StateIndexed{}, migration.NoModification)
+	migration.MustRegister(1, &TimedState{}, migration.NoModification)
 	migration.MustRegister(1, &State{}, migration.NoModification)
 }
 
-var _ orm.Model = (*StateIndexed)(nil)
+var _ orm.Model = (*TimedState)(nil)
 
-// Validate ensures the StateIndexed fields are valid
-func (m *StateIndexed) Validate() error {
+// Validate ensures the TimedState fields are valid
+func (m *TimedState) Validate() error {
 	var errs error
 
 	errs = errors.AppendField(errs, "Metadata", m.Metadata.Validate())
@@ -27,13 +27,13 @@ func (m *StateIndexed) Validate() error {
 	if m.InnerStateEnum != InnerStateEnum_CaseOne && m.InnerStateEnum != InnerStateEnum_CaseTwo {
 		errs = errors.AppendField(errs, "InnerStateEnum", errors.ErrState)
 	}
-	
+
 	return errs
 }
 
-// Copy produces a new StateIndexed clone to fulfill the Model interface
-func (m *StateIndexed) Copy() orm.CloneableData {
-	return &StateIndexed{
+// Copy produces a new TimedState clone to fulfill the Model interface
+func (m *TimedState) Copy() orm.CloneableData {
+	return &TimedState{
 		Metadata:       m.Metadata.Copy(),
 		InnerStateEnum: m.InnerStateEnum,
 		Str:            m.Str,
