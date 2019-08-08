@@ -1,8 +1,8 @@
 package custom
 
 import (
-	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/migration"
+	"github.com/iov-one/weave/orm"
 )
 
 type StateIndexedBucket struct {
@@ -10,11 +10,13 @@ type StateIndexedBucket struct {
 }
 
 func NewStateIndexedBucket() *StateIndexedBucket {
-	b := orm.NewModelBucket("stateIndexed", &StateIndexed{})
+	b := orm.NewModelBucket("stateind", &StateIndexed{}, orm.WithIDSequence(indexedStateSeq))
 	return &StateIndexedBucket{
-		ModelBucket: migration.NewModelBucket("mStateIndexed", b),
+		ModelBucket: migration.NewModelBucket("mstateindexed", b),
 	}
 }
+
+var indexedStateSeq = orm.NewSequence("indexedstate", "id")
 
 type StateBucket struct {
 	orm.ModelBucket
@@ -23,6 +25,6 @@ type StateBucket struct {
 func NewStateBucket() *StateBucket {
 	b := orm.NewModelBucket("state", &State{})
 	return &StateBucket{
-		ModelBucket: migration.NewModelBucket("mState", b),
+		ModelBucket: migration.NewModelBucket("mstate", b),
 	}
 }
