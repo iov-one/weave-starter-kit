@@ -5,9 +5,6 @@ import (
 	"github.com/iov-one/weave/migration"
 )
 
-const (
-	packageName = "custom"
-)
 type StateIndexedBucket struct {
 	orm.ModelBucket
 }
