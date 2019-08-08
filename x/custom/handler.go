@@ -16,24 +16,24 @@ const (
 
 // RegisterQuery registers buckets for querying.
 func RegisterQuery(qr weave.QueryRouter) {
-	NewCustomStateIndexedBucket().Register("customIndexedStates", qr)
-	NewCustomStateBucket().Register("customStates", qr)
+	NewStateIndexedBucket().Register("indexedStates", qr)
+	NewStateBucket().Register("states", qr)
 }
 
 // RegisterRoutes registers handlers for message processing.
 func RegisterRoutes(r weave.Registry, auth x.Authenticator) {
 	r = migration.SchemaMigratingRegistry(packageName, r)
 
-	r.Handle(&CreateCustomStateIndexedMsg{}, NewStateIndexedHandler(auth))
-	r.Handle(&CreateCustomStateMsg{}, NewStateHandler(auth))
+	r.Handle(&CreateStateIndexedMsg{}, NewStateIndexedHandler(auth))
+	r.Handle(&CreateStateMsg{}, NewStateHandler(auth))
 }
 
-// ------------------- CustomStateIndexed HANDLER -------------------
+// ------------------- StateIndexed HANDLER -------------------
 
 // StateIndexedHandler will handle creating custom indexed state buckets
 type StateIndexedHandler struct {
 	auth x.Authenticator
-	cb   *CustomStateIndexedBucket
+	b   *StateIndexedBucket
 }
 
 var _ weave.Handler = StateIndexedHandler{}
@@ -42,13 +42,13 @@ var _ weave.Handler = StateIndexedHandler{}
 func NewStateIndexedHandler(auth x.Authenticator) weave.Handler {
 	return StateIndexedHandler{
 		auth: auth,
-		cb:   NewCustomStateIndexedBucket(),
+		b:   NewStateIndexedBucket(),
 	}
 }
 
 // validate does all common pre-processing between Check and Deliver
-func (h StateIndexedHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateCustomStateIndexedMsg, error) {
-	var msg CreateCustomStateIndexedMsg
+func (h StateIndexedHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateStateIndexedMsg, error) {
+	var msg CreateStateIndexedMsg
 
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
@@ -76,20 +76,22 @@ func (h StateIndexedHandler) Deliver(ctx weave.Context, store weave.KVStore, tx 
 		return nil, err
 	}
 
-	customStateIndexed := &CustomStateIndexed{
+	stateIndexed := &StateIndexed{
 		Metadata: &weave.Metadata{},
 		InnerStateEnum: msg.InnerStateEnum,
-		CustomString: msg.CustomString,
-		CustomByte: msg.CustomByte,
+		Str: msg.Str,
+		Byte: msg.Byte,
 	}
-	
-	err = h.cb.Put(store, customStateIndexed)
+
+	if _, err = h.b.Create(store, stateIndexed); err != nil {
+		return nil, errors.Wrap(err, "cannot store indexed state")
+	}
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &weave.DeliverResult{Data: customStateIndexed.ID}, err
+	return &weave.DeliverResult{Data: stateIndexed.ID}, err
 }
 
 // ------------------- CustomState HANDLER -------------------
@@ -97,7 +99,7 @@ func (h StateIndexedHandler) Deliver(ctx weave.Context, store weave.KVStore, tx 
 // StateHandler will handle creating custom state buckets
 type StateHandler struct {
 	auth x.Authenticator
-	cb   *CustomStateBucket
+	b   *StateBucket
 }
 
 var _ weave.Handler = StateHandler{}
@@ -106,13 +108,13 @@ var _ weave.Handler = StateHandler{}
 func NewStateHandler(auth x.Authenticator) weave.Handler {
 	return StateHandler{
 		auth: auth,
-		cb:   NewCustomStateBucket(),
+		b:   NewStateBucket(),
 	}
 }
 
 // validate does all common pre-processing between Check and Deliver
-func (h StateHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateCustomStateMsg, error) {
-	var msg CreateCustomStateMsg
+func (h StateHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateStateMsg, error) {
+	var msg CreateStateMsg
 
 	if err := weave.LoadMsg(tx, &msg); err != nil {
 		return nil, errors.Wrap(err, "load msg")
@@ -142,14 +144,14 @@ func (h StateHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 
 	now := weave.AsUnixTime(time.Now())
 
-	customState := &CustomState{
+	state := &State{
 		Metadata: &weave.Metadata{},
 		InnerState: msg.InnerState,
-		CustomAddress: msg.CustomAddress,
+		Address: msg.Address,
 		CreatedAt: now,
 	}
 
-	_, err = h.cb.Put(store, nil, customState)
+	_, err = h.b.Put(store, nil, state)
 
 	if err != nil {
 		return nil, err
