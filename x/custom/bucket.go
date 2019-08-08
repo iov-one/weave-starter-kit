@@ -1,23 +1,42 @@
 package custom
 
 import (
+	"github.com/iov-one/weave"
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 )
 
 type StateIndexedBucket struct {
-	orm.ModelBucket
+	orm.IDGenBucket
 }
 
 func NewStateIndexedBucket() *StateIndexedBucket {
-	b := orm.NewModelBucket("stateind", &StateIndexed{}, orm.WithIDSequence(indexedStateSeq))
+	b := migration.NewBucket(packageName, "stateind", orm.NewSimpleObj(nil, &StateIndexed{}))
 	return &StateIndexedBucket{
-		ModelBucket: migration.NewModelBucket("mstateindexed", b),
+		IDGenBucket: orm.WithSeqIDGenerator(b, "id"),
 	}
 }
 
-var indexedStateSeq = orm.NewSequence("indexedstate", "id")
+// GetStateIndexed loads the StateIndexed for the given id. If it does not exist then ErrNotFound is returned.
+func (b *StateIndexedBucket) GetStateIndexed(db weave.KVStore, id []byte) (*StateIndexed, error) {
+	obj, err := b.Get(db, id)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to load indexed state")
+	}
+	return asStateIndexed(obj)
+}
 
+func asStateIndexed(obj orm.Object) (*StateIndexed, error) {
+	if obj == nil || obj.Value() == nil {
+		return nil, errors.Wrap(errors.ErrNotFound, "unknown id")
+	}
+	rev, ok := obj.Value().(*StateIndexed)
+	if !ok {
+		return nil, errors.Wrapf(errors.ErrModel, "invalid type: %T", obj.Value())
+	}
+	return rev, nil
+}
 type StateBucket struct {
 	orm.ModelBucket
 }
