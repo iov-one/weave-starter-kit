@@ -15,18 +15,11 @@ func init() {
 
 var _ orm.Model = (*StateIndexed)(nil)
 
-// SetID is a minimal implementation, useful when the ID is a separate protobuf field
-func (m *StateIndexed) SetID(id []byte) error {
-	m.ID = id
-	return nil
-}
-
 // Validate ensures the StateIndexed fields are valid
 func (m *StateIndexed) Validate() error {
 	var errs error
 
 	errs = errors.AppendField(errs, "Metadata", m.Metadata.Validate())
-	errs = errors.AppendField(errs, "ID", isGenID(m.ID, true))
 	errs = errors.AppendField(errs, "Str", stringValidation(m.Str))
 	if m.Byte == nil {
 		errs = errors.AppendField(errs, "Byte", errors.ErrEmpty)
@@ -42,7 +35,6 @@ func (m *StateIndexed) Validate() error {
 func (m *StateIndexed) Copy() orm.CloneableData {
 	return &StateIndexed{
 		Metadata:       m.Metadata.Copy(),
-		ID:             copyBytes(m.ID),
 		InnerStateEnum: m.InnerStateEnum,
 		Str:            m.Str,
 		Byte:           copyBytes(m.Byte),
