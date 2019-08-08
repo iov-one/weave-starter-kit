@@ -23,31 +23,29 @@ func TestCreateStateIndexed(t *testing.T) {
 	}{
 		"success": {
 			msg: &CreateStateIndexedMsg{
-				Metadata: meta,
+				Metadata:       meta,
 				InnerStateEnum: InnerStateEnum_CaseOne,
-				Str: "cstm_str",
-				Byte: []byte{0, 1},
+				Str:            "cstm_str",
+				Byte:           []byte{0, 1},
 			},
 			expected: &StateIndexed{
-				Metadata: meta,
+				Metadata:       meta,
 				InnerStateEnum: InnerStateEnum_CaseOne,
-				Str: "cstm_str",
-				Byte: []byte{0, 1},
+				Str:            "cstm_str",
+				Byte:           []byte{0, 1},
 			},
 			wantCheckErrs: map[string]*errors.Error{
 				"Metadata":       nil,
-				"ID":             nil,
 				"InnerStateEnum": nil,
-				"Str":   nil,
-				"Byte":     nil,
+				"Str":            nil,
+				"Byte":           nil,
 				"DeletedAt":      nil,
 			},
 			wantDeliverErrs: map[string]*errors.Error{
 				"Metadata":       nil,
-				"ID":             nil,
 				"InnerStateEnum": nil,
-				"Str":   nil,
-				"Byte":     nil,
+				"Str":            nil,
+				"Byte":           nil,
 				"DeletedAt":      nil,
 			},
 		},
@@ -68,7 +66,7 @@ func TestCreateStateIndexed(t *testing.T) {
 					assert.FieldError(t, err, field, wantErr)
 				}
 			}
-			
+
 			res, err := h.Deliver(nil, kv, tx)
 			for field, wantErr := range tc.wantDeliverErrs {
 				assert.FieldError(t, err, field, wantErr)
@@ -78,7 +76,7 @@ func TestCreateStateIndexed(t *testing.T) {
 				stored, err := bucket.GetStateIndexed(kv, res.Data)
 
 				assert.Nil(t, err)
-				assert.Equal(t, tc.expected, &stored)
+				assert.Equal(t, tc.expected, stored)
 			}
 		})
 	}
