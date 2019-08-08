@@ -18,8 +18,7 @@ message InnerState {
 
 // ---------- STATE -----------
 
-// Demonstrates morm.Model
-message StateIndexed {
+message TimedState {
   weave.Metadata metadata = 1;
   InnerStateEnum inner_state_enum = 2;
   string str = 3;
@@ -39,7 +38,7 @@ message State {
 
 // ---------- MESSAGES -----------
 
-message CreateStateIndexedMsg {
+message CreateTimedStateMsg {
   weave.Metadata metadata = 1;
   InnerStateEnum inner_state_enum = 2;
   string str = 4;
