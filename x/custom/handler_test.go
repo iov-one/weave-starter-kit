@@ -11,61 +11,43 @@ import (
 	"github.com/iov-one/weave/weavetest/assert"
 )
 
-func TestCreateCustomStateIndexed(t *testing.T) {
+func TestCreateStateIndexed(t *testing.T) {
 
 	meta := &weave.Metadata{Schema: 1}
 
 	cases := map[string]struct {
 		msg             weave.Msg
-		expected        *CustomStateIndexed
+		expected        *StateIndexed
 		wantCheckErrs   map[string]*errors.Error
 		wantDeliverErrs map[string]*errors.Error
 	}{
-		"nil message": {
-			wantCheckErrs: map[string]*errors.Error{
-				"Metadata":       nil,
-				"ID":             nil,
-				"InnerStateEnum": nil,
-				"CustomString":   nil,
-				"CustomByte":     nil,
-				"DeletedAt":      nil,
-			},
-			wantDeliverErrs: map[string]*errors.Error{
-				"Metadata":       nil,
-				"ID":             nil,
-				"InnerStateEnum": nil,
-				"CustomString":   nil,
-				"CustomByte":     nil,
-				"DeletedAt":      nil,
-			},
-		},
 		"success": {
-			msg: &CreateCustomStateIndexedMsg{
+			msg: &CreateStateIndexedMsg{
 				Metadata: meta,
 				InnerStateEnum: InnerStateEnum_CaseOne,
-				CustomString: "cstm_str",
-				CustomByte: []byte{0, 1},
+				Str: "cstm_str",
+				Byte: []byte{0, 1},
 			},
-			expected: &CustomStateIndexed{
+			expected: &StateIndexed{
 				Metadata: meta,
 				InnerStateEnum: InnerStateEnum_CaseOne,
-				CustomString: "cstm_str",
-				CustomByte: []byte{0, 1},
+				Str: "cstm_str",
+				Byte: []byte{0, 1},
 			},
 			wantCheckErrs: map[string]*errors.Error{
 				"Metadata":       nil,
 				"ID":             nil,
 				"InnerStateEnum": nil,
-				"CustomString":   nil,
-				"CustomByte":     nil,
+				"Str":   nil,
+				"Byte":     nil,
 				"DeletedAt":      nil,
 			},
 			wantDeliverErrs: map[string]*errors.Error{
 				"Metadata":       nil,
 				"ID":             nil,
 				"InnerStateEnum": nil,
-				"CustomString":   nil,
-				"CustomByte":     nil,
+				"Str":   nil,
+				"Byte":     nil,
 				"DeletedAt":      nil,
 			},
 		},
@@ -76,7 +58,7 @@ func TestCreateCustomStateIndexed(t *testing.T) {
 
 			h := NewStateIndexedHandler(auth)
 			kv := store.MemStore()
-			bucket := NewCustomStateIndexedBucket()
+			bucket := NewStateIndexedBucket()
 			migration.MustInitPkg(kv, packageName)
 
 			tx := &weavetest.Tx{Msg: tc.msg}
@@ -87,14 +69,14 @@ func TestCreateCustomStateIndexed(t *testing.T) {
 				}
 			}
 			
-			dres, err := h.Deliver(nil, kv, tx)
+			res, err := h.Deliver(nil, kv, tx)
 			for field, wantErr := range tc.wantDeliverErrs {
 				assert.FieldError(t, err, field, wantErr)
 			}
 
 			if tc.expected != nil {
-				var stored CustomStateIndexed
-				err = bucket.One(kv, dres.Data, &stored)
+				stored, err := bucket.GetStateIndexed(kv, res.Data)
+
 				assert.Nil(t, err)
 				assert.Equal(t, tc.expected, &stored)
 			}
