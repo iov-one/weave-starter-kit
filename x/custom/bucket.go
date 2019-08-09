@@ -43,8 +43,10 @@ type StateBucket struct {
 }
 
 func NewStateBucket() *StateBucket {
-	b := orm.NewModelBucket("state", &State{})
+	b := orm.NewModelBucket("state", &State{}, orm.WithIDSequence(stateSeq))
 	return &StateBucket{
-		ModelBucket: migration.NewModelBucket("mstate", b),
+		ModelBucket: migration.NewModelBucket(packageName, b),
 	}
 }
+
+var stateSeq = orm.NewSequence("state", "id")
