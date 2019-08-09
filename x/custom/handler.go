@@ -144,6 +144,11 @@ func (h StateHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 	}
 
 	now := weave.AsUnixTime(time.Now())
+	
+	key, err := stateSeq.NextVal(store)
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot acquire key")
+	}
 
 	state := &State{
 		Metadata:   &weave.Metadata{},
@@ -152,11 +157,11 @@ func (h StateHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.T
 		CreatedAt:  now,
 	}
 
-	_, err = h.b.Put(store, nil, state)
+	res, err := h.b.Put(store, key, state)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &weave.DeliverResult{}, err
+	return &weave.DeliverResult{Data: res}, err
 }
