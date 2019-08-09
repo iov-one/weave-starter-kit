@@ -82,6 +82,7 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
 			},
 		},
 		"initialize_schema": []dict{
+			{"pkg": "custom", "ver": 1},
 			{"pkg": "cash", "ver": 1},
 			{"pkg": "sigs", "ver": 1},
 			{"pkg": "multisig", "ver": 1},
