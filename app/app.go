@@ -20,6 +20,7 @@ import (
 	"github.com/iov-one/weave/x/sigs"
 	"github.com/iov-one/weave/x/utils"
 	"github.com/iov-one/weave/x/validators"
+	"github.com/iov-one/weave-starter-kit/x/custom"
 )
 
 // Authenticator returns authentication with multisigs
@@ -69,11 +70,12 @@ func Router(authFn x.Authenticator, issuer weave.Address) *app.Router {
 	currency.RegisterRoutes(r, authFn, issuer)
 	migration.RegisterRoutes(r, authFn)
 	validators.RegisterRoutes(r, authFn)
+	custom.RegisterRoutes(r, authFn)
 	return r
 }
 
 // QueryRouter returns a default query router,
-// allowing access to "/auth", "/contracts", "/wallets", "/validators" and "/"
+// allowing access to "/custom", "/auth", "/contracts", "/wallets", "/validators" and "/"
 func QueryRouter() weave.QueryRouter {
 	r := weave.NewQueryRouter()
 	r.RegisterAll(
@@ -84,6 +86,7 @@ func QueryRouter() weave.QueryRouter {
 		migration.RegisterQuery,
 		orm.RegisterQuery,
 		validators.RegisterQuery,
+		custom.RegisterQuery,
 	)
 	return r
 }
