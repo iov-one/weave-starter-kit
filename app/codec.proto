@@ -26,7 +26,7 @@ message Tx {
     validators.ApplyDiffMsg validators_apply_diff_msg = 58;
     currency.CreateMsg currency_create_msg = 59;
     migration.UpgradeSchemaMsg migration_upgrade_schema_msg = 69;
-    custom.CreateCustomStateIndexedMsg custom_create_state_indexed_msg = 100;
-    custom.CreateCustomStateMsg create_custom_state_msg = 101;
+    custom.CreateTimedStateMsg custom_create_timed_state_msg = 100;
+    custom.CreateStateMsg create_state_msg = 101;
   }
 }
