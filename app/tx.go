@@ -17,7 +17,7 @@ func TxDecoder(bz []byte) (weave.Tx, error) {
 // make sure tx fulfills all interfaces
 var _ weave.Tx = (*Tx)(nil)
 
-// GetMsg switches over all types defined in the protobuf file
+// GetMsg returns a single message instance that is represented by this transaction.
 func (tx *Tx) GetMsg() (weave.Msg, error) {
 	return weave.ExtractMsgFromSum(tx.GetSum())
 }
