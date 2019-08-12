@@ -29,7 +29,7 @@ message Tx {
   repeated sigs.StdSignature sigs_signatures = 2;
   // ID of a multisig contract.
   repeated bytes multisig = 4;
-  // msg is a sum type over all allowed messages on this chain.
+  // sum defines over all allowed messages on this chain.
   oneof sum {
     cash.SendMsg cash_send_msg = 51;
     multisig.CreateMsg create_contract_msg = 56;
