@@ -120,7 +120,7 @@ func Application(name string, h weave.Handler,
 	ctx := context.Background()
 	kv, err := CommitKVStore(dbPath)
 	if err != nil {
-		return app.BaseApp{}, err
+		return app.BaseApp{}, errors.Wrap(err, "cannot create database instance")
 	}
 	store := app.NewStoreApp(name, kv, QueryRouter(), ctx)
 	base := app.NewBaseApp(store, tx, h, nil, debug)
