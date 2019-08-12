@@ -82,6 +82,7 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
 				MinimalFee:       coin.Coin{Whole: 0}, // no fee
 			},
 			"migration": dict{
+				// admin is who can change this redistribution address to other address
 				"admin": addr,
 			},
 		},
