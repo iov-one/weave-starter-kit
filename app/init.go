@@ -26,9 +26,12 @@ import (
 // account, to use for dev mode
 func GenInitOptions(args []string) (json.RawMessage, error) {
 	// Your coins ticker code
-	code := "PRJCT"
+	ticker := "PRJCT"
 	if len(args) > 0 {
-		code = args[0]
+		ticker = args[0]
+		if !coin.IsCC(ticker) {
+			return nil, fmt.Errorf("Invalid ticker %s", ticker)
+		}
 	}
 
 	var addr string
@@ -41,7 +44,7 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
 		if err != nil {
 			return nil, err
 		}
-		addr = bz.String()
+		addr = hex.EncodeToString(bz)
 		fmt.Println(phrase)
 	}
 
@@ -49,10 +52,12 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
 		dict  map[string]interface{}
 		array []interface{}
 	)
-	collectorAddr, err := hex.DecodeString("3b11c732b8fc1f09beb34031302fe2ab347c5c14")
-	if err != nil {
-		return nil, errors.Wrap(err, "cannot hex decode collector address")
-	}
+
+	cond1 := weave.NewCondition("sigs", "ed25519", []byte{1, 2, 3})
+	// collectorAddr is the address where all tx fee's will be
+	// stashed and then distributed to stakeholders
+	collectorAddr := cond1.Address()
+
 	return json.Marshal(dict{
 		"cash": array{
 			dict{
@@ -60,7 +65,7 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
 				"coins": array{
 					dict{
 						"whole":  123456789,
-						"ticker": code,
+						"ticker": ticker,
 					},
 				},
 			},
@@ -71,9 +76,8 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
 				"name":   "Your projects native token",
 			},
 		},
-
 		"conf": dict{
-			"cash": cash.Configuration{
+			"collector_address": cash.Configuration{
 				CollectorAddress: collectorAddr,
 				MinimalFee:       coin.Coin{Whole: 0}, // no fee
 			},
@@ -123,13 +127,25 @@ func DecorateApp(application app.BaseApp, logger log.Logger) app.BaseApp {
 	return application
 }
 
+type output struct {
+	Pubkey *crypto.PublicKey  `json:"pub_key"`
+	Secret *crypto.PrivateKey `json:"secret"`
+}
+
 // GenerateCoinKey returns the address of a public key,
 // along with the secret phrase to recover the private key.
 // You can give coins to this address and return the recovery
 // phrase to the user to access them.
 func GenerateCoinKey() (weave.Address, string, error) {
-	// TODO implement BIP39 recovery phrases
 	privKey := crypto.GenPrivKeyEd25519()
-	addr := privKey.PublicKey().Address()
-	return addr, "TODO: add a recovery phrase", nil
+	pubKey := privKey.PublicKey()
+	addr := pubKey.Address()
+
+	out := output{Pubkey: pubKey, Secret: privKey}
+	keys, err := json.MarshalIndent(out, "", "  ")
+	if err != nil {
+		return nil, "", err
+	}
+
+	return addr, string(keys), nil
 }
