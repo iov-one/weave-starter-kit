@@ -47,7 +47,7 @@ type Tx struct {
 	SigsSignatures []*sigs.StdSignature `protobuf:"bytes,2,rep,name=sigs_signatures,json=sigsSignatures,proto3" json:"sigs_signatures,omitempty"`
 	// ID of a multisig contract.
 	Multisig [][]byte `protobuf:"bytes,4,rep,name=multisig,proto3" json:"multisig,omitempty"`
-	// msg is a sum type over all allowed messages on this chain.
+	// sum defines over all allowed messages on this chain.
 	//
 	// Types that are valid to be assigned to Sum:
 	//	*Tx_CashSendMsg
