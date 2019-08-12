@@ -51,15 +51,6 @@ func Chain(authFn x.Authenticator, minFee coin.Coin) app.Decorators {
 	)
 }
 
-/* custom app uses below weave modules apart from x/custom
-	- cash
-	- sigs
-	- multisig
-	- currency
-	- migration
-	- validators
-*/ 
-
 // Router returns a default router
 func Router(authFn x.Authenticator, issuer weave.Address) *app.Router {
 	r := app.NewRouter()
