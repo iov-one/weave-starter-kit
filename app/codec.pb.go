@@ -30,9 +30,20 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion2 // please upgrade the proto package
 
 // Tx contains the message
+// When extending Tx, follow the rules:
+// - Range 1-50 is reserved for middlewares,
+// - Range 51-inf is reserved for different message types,
+// - Keep the same numbers for the same message types in weave based applications to
+//   sustain compatibility between blockchains. For example, FeeInfo field is used by
+//   both and indexed at first position. Skip unused fields (leave index unused or
+//   comment out for clarity).
+// When there is a gap in message sequence numbers - that most likely means some
+// old fields got deprecated. This is done to maintain binary compatibility.
 type Tx struct {
-	// fee info, autogenerates GetFees()
-	CashFees       *cash.FeeInfo        `protobuf:"bytes,1,opt,name=cash_fees,json=cashFees,proto3" json:"cash_fees,omitempty"`
+	// Enables coin.GetFees()
+	CashFees *cash.FeeInfo `protobuf:"bytes,1,opt,name=cash_fees,json=cashFees,proto3" json:"cash_fees,omitempty"`
+	//StdSignature represents the signature, the identity of the signer
+	// (the Pubkey), and a sequence number to prevent replay attacks.
 	SigsSignatures []*sigs.StdSignature `protobuf:"bytes,2,rep,name=sigs_signatures,json=sigsSignatures,proto3" json:"sigs_signatures,omitempty"`
 	// ID of a multisig contract.
 	Multisig [][]byte `protobuf:"bytes,4,rep,name=multisig,proto3" json:"multisig,omitempty"`
