@@ -1,4 +1,3 @@
-
 package app
 
 import (
@@ -7,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/iov-one/weave"
+	"github.com/iov-one/weave-starter-kit/x/custom"
 	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/errors"
@@ -20,7 +20,6 @@ import (
 	"github.com/iov-one/weave/x/sigs"
 	"github.com/iov-one/weave/x/utils"
 	"github.com/iov-one/weave/x/validators"
-	"github.com/iov-one/weave-starter-kit/x/custom"
 )
 
 // Authenticator returns authentication with multisigs
@@ -113,7 +112,7 @@ func CommitKVStore(dbPath string) (weave.CommitKVStore, error) {
 }
 
 // Application constructs a basic ABCI application with
-// the given arguments. 
+// the given arguments.
 func Application(name string, h weave.Handler,
 	tx weave.TxDecoder, dbPath string, debug bool) (app.BaseApp, error) {
 

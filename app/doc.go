@@ -10,5 +10,5 @@ App uses weave modules defined below:
   - migration
   - validators
   - custom
-*/ 
+*/
 package app
