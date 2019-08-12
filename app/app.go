@@ -3,13 +3,13 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"path/filepath"
 	"strings"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
 	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/orm"
 	"github.com/iov-one/weave/store/iavl"
@@ -100,7 +100,7 @@ func CommitKVStore(dbPath string) (weave.CommitKVStore, error) {
 	// Expand the path fully
 	path, err := filepath.Abs(dbPath)
 	if err != nil {
-		return nil, fmt.Errorf("Invalid Database Name: %s", path)
+		return nil, errors.Wrapf(errors.ErrDatabase, "invalid database name: %s", path)
 	}
 
 	// Some external calls accidentally add a ".db", which is now removed
