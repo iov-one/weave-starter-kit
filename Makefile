@@ -66,3 +66,4 @@ import-spec:
 	@mkdir -p spec/github.com/iov-one/weave
 	@cp -r ${WEAVEDIR}/spec/gogo/* spec/github.com/iov-one/weave
 	@chmod -R +w spec
+	@echo '\noption go_package = "github.com/iov-one/weave";' >> spec/github.com/iov-one/weave/codec.proto
