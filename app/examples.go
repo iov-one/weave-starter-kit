@@ -91,6 +91,12 @@ func Examples() []commands.Example {
 		Byte:           []byte{0, 1},
 	}
 
+	createStateMsg := &custom.CreateStateMsg{
+		Metadata:   &weave.Metadata{Schema: 1},
+		InnerState: &custom.InnerState{St1: 1, St2: 1},
+		Address:    randomAddr,
+	}
+
 	fmt.Printf("Address: %s\n", addr)
 	return []commands.Example{
 		{Filename: "wallet", Obj: wallet},
@@ -102,6 +108,7 @@ func Examples() []commands.Example {
 		{Filename: "send_msg", Obj: msg},
 		{Filename: "unsigned_tx", Obj: &unsigned},
 		{Filename: "signed_tx", Obj: &tx},
-		{Filename: "create_timed_state_msg", Obj: createTimedStateMsg},
+		{Filename: "custom_create_timed_state_msg", Obj: createTimedStateMsg},
+		{Filename: "custom_create_state_msg", Obj: createStateMsg},
 	}
 }
