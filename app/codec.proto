@@ -38,6 +38,6 @@ message Tx {
     currency.CreateMsg currency_create_msg = 59;
     migration.UpgradeSchemaMsg migration_upgrade_schema_msg = 69;
     custom.CreateTimedStateMsg custom_create_timed_state_msg = 100;
-    custom.CreateStateMsg create_state_msg = 101;
+    custom.CreateStateMsg custom_create_state_msg = 101;
   }
 }
