@@ -3,8 +3,8 @@
 # make sure we turn on go modules
 export GO111MODULE := on
 
-# for building out the yourproject app
-BUILDOUT ?= yourproject
+# for building out the customd app
+BUILDOUT ?= customd 
 BUILD_VERSION ?= $(shell git describe --tags)
 BUILD_FLAGS := -mod=readonly -ldflags "-X github.com/iov-one/weave.Version=$(BUILD_VERSION)"
 
@@ -25,10 +25,10 @@ clean:
 	rm -f ${BUILDOUT}
 
 build:
-	go build $(BUILD_FLAGS) -o $(BUILDOUT) ./cmd/yourproject
+	go build $(BUILD_FLAGS) -o $(BUILDOUT) ./cmd/customd
 
 install:
-	go install $(BUILD_FLAGS) ./cmd/yourproject
+	go install $(BUILD_FLAGS) ./cmd/customd
 
 test:
 	go vet -mod=readonly ./...
