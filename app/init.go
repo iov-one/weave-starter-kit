@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -125,6 +126,16 @@ func DecorateApp(application app.BaseApp, logger log.Logger) app.BaseApp {
 	))
 	application.WithLogger(logger)
 	return application
+}
+
+// InlineApp will take a previously prepared CommitStore and return a complete Application
+func InlineApp(kv weave.CommitKVStore, logger log.Logger, debug bool) abci.Application {
+	minFee := coin.Coin{}
+	stack := Stack(nil, minFee)
+	ctx := context.Background()
+	store := app.NewStoreApp("customd", kv, QueryRouter(), ctx)
+	base := app.NewBaseApp(store, TxDecoder, stack, nil, debug)
+	return DecorateApp(base, logger)
 }
 
 type output struct {
