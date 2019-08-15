@@ -71,9 +71,9 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
 			},
 		},
 		"conf": dict{
-			"collector_address": cash.Configuration{
-				CollectorAddress: collectorAddr,
-				MinimalFee:       coin.Coin{Whole: 0}, // no fee
+			"cash": dict{
+				"collector_address": collectorAddr,
+				"minimal_fee":       coin.Coin{Whole: 0}, // no fee
 			},
 			"migration": dict{
 				// admin is who can change this redistribution address to other address
@@ -82,7 +82,7 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
 		},
 		"initialize_schema": []dict{
 			{"pkg": "migration", "ver": 1},
-			{"pkg": "custom", "ver": 1},
+			//{"pkg": "custom", "ver": 1},
 			{"pkg": "cash", "ver": 1},
 			{"pkg": "sigs", "ver": 1},
 			{"pkg": "multisig", "ver": 1},
@@ -97,11 +97,11 @@ func GenerateApp(options *server.Options) (abci.Application, error) {
 	// db goes in a subdir, but "" -> "" for memdb
 	var dbPath string
 	if options.Home != "" {
-		dbPath = filepath.Join(options.Home, "abci.db")
+		dbPath = filepath.Join(options.Home, "custom.db")
 	}
 
 	stack := Stack(nil, options.MinFee)
-	application, err := Application("custom", stack, TxDecoder, dbPath, options.Debug)
+	application, err := Application("customd", stack, TxDecoder, dbPath, options.Debug)
 	if err != nil {
 		return nil, err
 	}
