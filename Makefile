@@ -66,3 +66,9 @@ import-spec:
 	@mkdir -p spec/github.com/iov-one/weave
 	@cp -r ${WEAVEDIR}/spec/gogo/* spec/github.com/iov-one/weave
 	@chmod -R +w spec
+
+inittm:
+	tendermint init --home ~/.custom
+
+runtm:
+	tendermint node --home ~/.custom > ~/.custom/tendermint.log &
