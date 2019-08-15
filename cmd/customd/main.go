@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 
 	"github.com/iov-one/weave"
+	customd "github.com/iov-one/weave-starter-kit/app"
 	"github.com/iov-one/weave/commands/server"
 	"github.com/tendermint/tendermint/libs/log"
-	customd "github.com/iov-one/weave-starter-kit/app"
 )
 
 var (
