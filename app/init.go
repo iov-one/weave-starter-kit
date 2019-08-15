@@ -81,6 +81,7 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
 			},
 		},
 		"initialize_schema": []dict{
+			{"pkg": "migration", "ver": 1},
 			{"pkg": "custom", "ver": 1},
 			{"pkg": "cash", "ver": 1},
 			{"pkg": "sigs", "ver": 1},
@@ -100,7 +101,7 @@ func GenerateApp(options *server.Options) (abci.Application, error) {
 	}
 
 	stack := Stack(nil, options.MinFee)
-	application, err := Application("project", stack, TxDecoder, dbPath, options.Debug)
+	application, err := Application("custom", stack, TxDecoder, dbPath, options.Debug)
 	if err != nil {
 		return nil, err
 	}
@@ -111,10 +112,10 @@ func GenerateApp(options *server.Options) (abci.Application, error) {
 // DecorateApp adds initializers and Logger to an Application
 func DecorateApp(application app.BaseApp, logger log.Logger) app.BaseApp {
 	application.WithInit(app.ChainInitializers(
+		&migration.Initializer{},
 		&cash.Initializer{},
 		&multisig.Initializer{},
 		&currency.Initializer{},
-		&migration.Initializer{},
 		&validators.Initializer{},
 	))
 	application.WithLogger(logger)
