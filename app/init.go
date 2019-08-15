@@ -26,7 +26,7 @@ import (
 // account, to use for dev mode
 func GenInitOptions(args []string) (json.RawMessage, error) {
 	// Your coins ticker code
-	ticker := "PRJCT"
+	ticker := "CSTM"
 	if len(args) > 0 {
 		ticker = args[0]
 		if !coin.IsCC(ticker) {
@@ -70,12 +70,6 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
 				},
 			},
 		},
-		"currencies": array{
-			dict{
-				"ticker": "PRJCT",
-				"name":   "Your projects native token",
-			},
-		},
 		"conf": dict{
 			"collector_address": cash.Configuration{
 				CollectorAddress: collectorAddr,
@@ -92,7 +86,6 @@ func GenInitOptions(args []string) (json.RawMessage, error) {
 			{"pkg": "sigs", "ver": 1},
 			{"pkg": "multisig", "ver": 1},
 			{"pkg": "utils", "ver": 1},
-			{"pkg": "migration", "ver": 1},
 			{"pkg": "validators", "ver": 1},
 		},
 	})
