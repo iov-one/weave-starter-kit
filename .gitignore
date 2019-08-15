@@ -1,2 +1,13 @@
-.customd
+*.exe
+*.dll
+*.so
+*.dylib
+*.out
 vendor
+coverage
+.vagrant
+*.log
+*.db
+_build
+.vscode
+.gitian-builder-cache/
