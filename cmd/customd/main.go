@@ -8,6 +8,7 @@ import (
 
 	"github.com/iov-one/weave"
 	customd "github.com/iov-one/weave-starter-kit/app"
+	"github.com/iov-one/weave/commands"
 	"github.com/iov-one/weave/commands/server"
 	"github.com/tendermint/tendermint/libs/log"
 )
@@ -65,6 +66,8 @@ func main() {
 		err = server.GetBlockCmd(rest)
 	case "retry":
 		err = server.RetryCmd(customd.InlineApp, logger, *varHome, rest)
+	case "testgen":
+		err = commands.TestGenCmd(customd.Examples(), rest)
 	case "version":
 		fmt.Println(weave.Version)
 	default:
