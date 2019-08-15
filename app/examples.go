@@ -42,19 +42,17 @@ func makePrivKey(seed string) *crypto.PrivateKey {
 
 // Examples generates some example structs to dump out with testgen
 func Examples() []commands.Example {
+	ticker := "CSTM"
 	wallet := &cash.Set{
 		Metadata: &weave.Metadata{Schema: 1},
 		Coins: []*coin.Coin{
-			{Whole: 50000, Ticker: "ETH"},
-			{Whole: 150, Fractional: 567000, Ticker: "BTC"},
+			{Whole: 150, Fractional: 567000, Ticker: ticker},
 		},
 	}
 
-	eth := &coin.Coin{Whole: 50000, Fractional: 12345, Ticker: "ETH"}
-
 	token := &currency.TokenInfo{
 		Metadata: &weave.Metadata{Schema: 1},
-		Name:     "My special coin",
+		Name:     "Custom token",
 	}
 
 	pub := source.PublicKey()
@@ -65,7 +63,7 @@ func Examples() []commands.Example {
 		Sequence: 17,
 	}
 
-	amt := coin.NewCoin(250, 0, "ETH")
+	amt := coin.NewCoin(250, 0, ticker)
 	msg := &cash.SendMsg{
 		Metadata:    &weave.Metadata{Schema: 1},
 		Amount:      &amt,
@@ -100,7 +98,6 @@ func Examples() []commands.Example {
 	fmt.Printf("Address: %s\n", addr)
 	return []commands.Example{
 		{Filename: "wallet", Obj: wallet},
-		{Filename: "coin", Obj: eth},
 		{Filename: "token", Obj: token},
 		{Filename: "priv_key", Obj: source},
 		{Filename: "pub_key", Obj: pub},
