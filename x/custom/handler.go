@@ -76,19 +76,16 @@ func (h TimedStateHandler) Deliver(ctx weave.Context, store weave.KVStore, tx we
 		return nil, err
 	}
 
-	TimedState := &TimedState{
+	timedState := &TimedState{
 		Metadata:       &weave.Metadata{},
 		InnerStateEnum: msg.InnerStateEnum,
 		Str:            msg.Str,
 		Byte:           msg.Byte,
 	}
-	key, err := h.b.Put(store, nil, TimedState)
+	
+	key, err := h.b.Put(store, nil, timedState)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot store indexed state")
-	}
-
-	if err != nil {
-		return nil, err
 	}
 
 	return &weave.DeliverResult{Data: key}, err
