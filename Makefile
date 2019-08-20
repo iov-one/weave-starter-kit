@@ -82,7 +82,6 @@ protofmt: novendor
 	$(PROTOTOOL) format -w
 
 protodocs: novendor
-	# TODO: fix compilation steps and add back to protoc
 	./scripts/build_protodocs.sh docs/proto
 
 protoc: protolint protofmt protodocs
