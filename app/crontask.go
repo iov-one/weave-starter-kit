@@ -2,8 +2,8 @@ package app
 
 import (
 	"github.com/iov-one/weave"
-	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave-starter-kit/x/custom"
+	"github.com/iov-one/weave/errors"
 )
 
 // CronTaskMarshaler is a task marshaler implementation to be used by the bnsd
@@ -24,7 +24,7 @@ func (taskMarshaler) MarshalTask(auth []weave.Condition, msg weave.Msg) ([]byte,
 	default:
 		return nil, errors.Wrapf(errors.ErrType, "unsupported message type: %T", msg)
 
-		case *custom.DeleteTimedStateMsg:
+	case *custom.DeleteTimedStateMsg:
 		t.Sum = &CronTask_CustomDeleteTimedStateMsg{
 			CustomDeleteTimedStateMsg: msg,
 		}
