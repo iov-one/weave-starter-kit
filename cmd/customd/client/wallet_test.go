@@ -60,7 +60,7 @@ func TestMergeWalletStore(t *testing.T) {
 				Set: cash.Set{
 					Coins: []*coin.Coin{
 						{
-							Ticker:     "CASH",
+							Ticker:     "CSTM",
 							Whole:      123456789,
 							Fractional: 5555555,
 						},
@@ -72,7 +72,7 @@ func TestMergeWalletStore(t *testing.T) {
 				Set: cash.Set{
 					Coins: []*coin.Coin{
 						{
-							Ticker:     "CASH",
+							Ticker:     "CSTM",
 							Whole:      987654321,
 							Fractional: 5555555,
 						},
@@ -84,7 +84,7 @@ func TestMergeWalletStore(t *testing.T) {
 				Set: cash.Set{
 					Coins: []*coin.Coin{
 						{
-							Ticker:     "IOV",
+							Ticker:     "CSTM",
 							Whole:      123456789,
 							Fractional: 5555555,
 						},
@@ -96,7 +96,7 @@ func TestMergeWalletStore(t *testing.T) {
 				Set: cash.Set{
 					Coins: []*coin.Coin{
 						{
-							Ticker:     "IOV",
+							Ticker:     "CSTM",
 							Whole:      123456789,
 							Fractional: 5555555,
 						},
@@ -121,7 +121,7 @@ func TestMergeWithEmptyWallet(t *testing.T) {
 				Set: cash.Set{
 					Coins: []*coin.Coin{
 						{
-							Ticker:     "IOV",
+							Ticker:     "CSTM",
 							Whole:      123456789,
 							Fractional: 5555555,
 						},
@@ -133,7 +133,7 @@ func TestMergeWithEmptyWallet(t *testing.T) {
 				Set: cash.Set{
 					Coins: []*coin.Coin{
 						{
-							Ticker:     "IOV",
+							Ticker:     "CSTM",
 							Whole:      123456789,
 							Fractional: 5555555,
 						},
@@ -144,86 +144,6 @@ func TestMergeWithEmptyWallet(t *testing.T) {
 	}
 
 	actual := MergeWalletStore(w1, w2)
-	assert.Equal(t, expected, actual)
-}
-
-func TestDefaultValues(t *testing.T) {
-	actual := wsFromFile(t, "./testdata/wallets_extra.json")
-	expected := WalletStore{
-		Wallets: []cash.GenesisAccount{
-			{
-				Address: toWeaveAddress(t, "3AFCDAB4CFBF066E959D139251C8F0EE91E99D5A"),
-				Set: cash.Set{
-					Coins: []*coin.Coin{
-						{
-							Ticker:     "IOV",
-							Whole:      123456789,
-							Fractional: 5555555,
-						},
-					},
-				},
-			},
-			{
-				Address: toWeaveAddress(t, "CE5D5A5CA8C7D545D7756D3677234D81622BA297"),
-				Set: cash.Set{
-					Coins: []*coin.Coin{
-						{
-							Ticker:     "IOV",
-							Whole:      17,
-							Fractional: 5555555,
-						},
-					},
-				},
-			},
-			{
-				Address: toWeaveAddress(t, "D4821FD051696273D09E1FBAD0EBE5B5060787A7"),
-				Set: cash.Set{
-					Coins: []*coin.Coin{
-						{
-							Ticker:     "IOV",
-							Whole:      123456789,
-							Fractional: 42,
-						},
-					},
-				},
-			},
-			{
-				Address: toWeaveAddress(t, "5AC5F736DB0E083D2316E1C5BFC141CC0C669F84"),
-				Set: cash.Set{
-					Coins: []*coin.Coin{
-						{
-							Ticker:     "IOV",
-							Whole:      0,
-							Fractional: 0,
-						},
-					},
-				},
-			},
-			{
-				Address: toWeaveAddress(t, "12AFFBF6012FD2DF21416582DC80CBF1EFDF2460"),
-				Set: cash.Set{
-					Coins: []*coin.Coin{
-						{
-							Ticker:     "ETH",
-							Whole:      123456789,
-							Fractional: 5555555,
-						},
-						{
-							Ticker:     "CASH",
-							Whole:      123456789,
-							Fractional: 5555555,
-						},
-						{
-							Ticker:     "IOV",
-							Whole:      1000,
-							Fractional: 5555555,
-						},
-					},
-				},
-			},
-		},
-	}
-
 	assert.Equal(t, expected, actual)
 }
 
