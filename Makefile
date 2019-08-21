@@ -62,7 +62,7 @@ mod:
 		-coverprofile=coverage/bnsd_client.out \
 		github.com/iov-one/weave-starter-kit/cmd/bnsd/client
 cover:
-   	@# TODO write github.com/iov-one/weave-starter-kit/cmd/bnsd/client when implemented
+	@# TODO write github.com/iov-one/weave-starter-kit/cmd/bnsd/client when implemented
 	@go test -mod=readonly -covermode=$(MODE) \
 		-coverpkg=github.com/iov-one/weave-starter-kit/cmd/customd/app, \
 		-coverprofile=coverage/customd_app.out \
