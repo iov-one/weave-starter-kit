@@ -32,8 +32,6 @@ install:
 
 test:
 	@# customd binary is required by some tests. In order to not skip them, ensure customd binary is provided and in the latest version.
-	#go install -mod=readonly ./cmd/customd
-
 	go vet -mod=readonly ./...
 	go test -mod=readonly -race ./...
 
@@ -53,24 +51,23 @@ test-verbose:
 mod:
 	go mod tidy
 
-cover:
-	@ go test -mod=readonly -covermode=$(MODE) -coverprofile=coverage/allpackages.out ./...
-    # TODO write github.com/iov-one/weave-starter-kit/cmd/customd/client and scenarios, here when implemented \
+# TODO write github.com/iov-one/weave-starter-kit/cmd/customd/client and scenarios, here when implemented \
 	go test -mod=readonly -covermode=$(MODE) \
 		-coverpkg=github.com/iov-one/weave/cmd/customd/app,\
 		-coverprofile=coverage/custonmd_scenarios.out \
 		github.com/iov-one/weave-starter-kit/cmd/bnsd/scenarios
-
-	# TODO write github.com/iov-one/weave-starter-kit/cmd/bnsd/client when implemented
+# TODO \
+	go test -mod=readonly -covermode=$(MODE) \
+		-coverpkg=github.com/iov-one/weave-starter-kit/cmd/bnsd/app,github.com/iov-one/weave-starter-kit/cmd/bnsd/client,github.com/iov-one/weave-starter-kit/app \
+		-coverprofile=coverage/bnsd_client.out \
+		github.com/iov-one/weave-starter-kit/cmd/bnsd/client
+cover:
+   	# TODO write github.com/iov-one/weave-starter-kit/cmd/bnsd/client when implemented
 	@go test -mod=readonly -covermode=$(MODE) \
 		-coverpkg=github.com/iov-one/weave-starter-kit/cmd/customd/app, \
 		-coverprofile=coverage/customd_app.out \
 		github.com/iov-one/weave-starter-kit/cmd/customd/app
-	# go test -mod=readonly -covermode=$(MODE) \
-		-coverpkg=github.com/iov-one/weave-starter-kit/cmd/bnsd/app,github.com/iov-one/weave-starter-kit/cmd/bnsd/client,github.com/iov-one/weave-starter-kit/app \
-		-coverprofile=coverage/bnsd_client.out \
-		github.com/iov-one/weave-starter-kit/cmd/bnsd/client
-	cat coverage/*.out > coverage/coverage.txt
+		cat coverage/*.out > coverage/coverage.txt
 
 novendor:
 	@rm -rf ./vendor
