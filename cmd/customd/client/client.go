@@ -18,15 +18,11 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 )
 
-type Header = tmtypes.Header
-type Status = ctypes.ResultStatus
-type GenesisDoc = tmtypes.GenesisDoc
-
 const BroadcastTxSyncDefaultTimeOut = 15 * time.Second
 
-var QueryNewBlockHeader = tmtypes.EventQueryNewBlockHeader
+//var QueryNewBlockHeader = tmtypes.EventQueryNewBlockHeader
 
-// Client is an interface to interact with bcp
+// Client is an interface to interact with weave apps
 type Client interface {
 	TendermintClient() client.Client
 	GetUser(addr weave.Address) (*UserResponse, error)
@@ -49,8 +45,7 @@ type CustomClient struct {
 // tendermint client connection.
 func NewClient(conn client.Client) *CustomClient {
 	return &CustomClient{
-		conn: conn,
-		// TODO: make this random
+		conn:       conn,
 		subscriber: "tools-client",
 	}
 }
@@ -115,12 +110,12 @@ func (n *Nonce) Next() (int64, error) {
 //************ generic (weave) functionality *************//
 
 // Status will return the raw status from the node
-func (cc *CustomClient) Status() (*Status, error) {
+func (cc *CustomClient) Status() (*ctypes.ResultStatus, error) {
 	return cc.conn.Status()
 }
 
 // Genesis will return the genesis directly from the node
-func (cc *CustomClient) Genesis() (*GenesisDoc, error) {
+func (cc *CustomClient) Genesis() (*tmtypes.GenesisDoc, error) {
 	gen, err := cc.conn.Genesis()
 	if err != nil {
 		return nil, err
@@ -312,8 +307,8 @@ func (cc *CustomClient) BroadcastTxAsync(tx weave.Tx, out chan<- BroadcastTxResp
 // to typecase the events into Headers. Returns a cancel
 // function. If you don't want the automatic goroutine, use
 // Subscribe(QueryNewBlockHeader, out)
-func (cc *CustomClient) SubscribeHeaders(out chan<- *Header) (func(), error) {
-	query := QueryNewBlockHeader
+func (cc *CustomClient) SubscribeHeaders(out chan<- *tmtypes.Header) (func(), error) {
+	query := tmtypes.EventQueryNewBlockHeader
 	pipe, cancel, err := cc.Subscribe(query)
 	if err != nil {
 		return nil, err
