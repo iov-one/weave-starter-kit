@@ -73,15 +73,19 @@ func LoadPrivateKey(filename string) (*PrivateKey, error) {
 //
 // Refuses to overwrite a file unless force is true
 func SavePrivateKey(key *PrivateKey, filename string, force bool) error {
-	if err := canWrite(filename, force); err != nil {
-		return err
+	if force {
+		if fileExists, err := fileExists(filename); fileExists && err != nil {
+			return err
+		}
+		// actually do the write
+		hexKey, err := EncodePrivateKey(key)
+		if err != nil {
+			return err
+		}
+		return ioutil.WriteFile(filename, []byte(hexKey), KeyPerm)
 	}
-	// actually do the write
-	hexKey, err := EncodePrivateKey(key)
-	if err != nil {
-		return err
-	}
-	return ioutil.WriteFile(filename, []byte(hexKey), KeyPerm)
+
+	return errors.Errorf("force write is not enabled for file: %s", filename)
 }
 
 // LoadPrivateKeys will load an array of private keys from a file,
@@ -115,22 +119,23 @@ func LoadPrivateKeys(filename string) ([]*PrivateKey, error) {
 //
 // Refuses to overwrite a file unless force is true
 func SavePrivateKeys(keys []*PrivateKey, filename string, force bool) error {
-	var err error
-	if err = canWrite(filename, force); err != nil {
-		return err
-	}
-	encoded := make([]string, len(keys))
-	for i, k := range keys {
-		encoded[i], err = EncodePrivateKey(k)
+	if force {
+		var err error
+		encoded := make([]string, len(keys))
+		for i, k := range keys {
+			encoded[i], err = EncodePrivateKey(k)
+			if err != nil {
+				return err
+			}
+		}
+		data, err := json.Marshal(encoded)
 		if err != nil {
 			return err
 		}
+		return ioutil.WriteFile(filename, data, KeyPerm)
 	}
-	data, err := json.Marshal(encoded)
-	if err != nil {
-		return err
-	}
-	return ioutil.WriteFile(filename, data, KeyPerm)
+
+	return errors.Errorf("force write is not enabled for file: %s", filename)
 }
 
 // KeysByAddress takes a list of keys and creates a map
@@ -144,14 +149,11 @@ func KeysByAddress(keys []*PrivateKey) map[string]*PrivateKey {
 	return res
 }
 
-// canWrite is a little helper to check if we want to write a file
-func canWrite(filename string, force bool) error {
-	if force {
-		return nil
-	}
-	_, err := os.Stat(filename)
+// fileExists returns error if file under given path does not exists.
+func fileExists(path string) (bool, error) {
+	_, err := os.Stat(path)
 	if err == nil {
-		return errors.Errorf("Refusing to overwrite: %s", filename)
+		return false, errors.Errorf("overwrite refused: %s", path)
 	}
-	return nil
+	return true, nil
 }

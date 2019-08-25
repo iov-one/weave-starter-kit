@@ -62,7 +62,7 @@ func TestSaveLoad(t *testing.T) {
 	private2 := GenPrivateKey()
 
 	// Save and load key
-	err = SavePrivateKey(private, filename, false)
+	err = SavePrivateKey(private, filename, true)
 	assert.Nil(t, err)
 	loaded, err := LoadPrivateKey(filename)
 	assert.Nil(t, err)
@@ -72,7 +72,7 @@ func TestSaveLoad(t *testing.T) {
 	err = SavePrivateKey(private2, filename, false)
 	assert.Equal(t, true, err != nil)
 	// can write to other location...
-	err = SavePrivateKey(private2, filename2, false)
+	err = SavePrivateKey(private2, filename2, true)
 	assert.Nil(t, err)
 
 	// both keys stored separately
@@ -108,7 +108,7 @@ func TestSaveLoadMultipleKeys(t *testing.T) {
 	two := []*PrivateKey{private2, private3}
 
 	// Save and load key
-	err = SavePrivateKeys(empty, filename, false)
+	err = SavePrivateKeys(empty, filename, true)
 	assert.Nil(t, err)
 	loaded, err := LoadPrivateKeys(filename)
 	assert.Nil(t, err)
@@ -119,7 +119,7 @@ func TestSaveLoadMultipleKeys(t *testing.T) {
 	assert.Equal(t, true, err != nil)
 
 	// can write to other location...
-	err = SavePrivateKeys(one, filename2, false)
+	err = SavePrivateKeys(one, filename2, true)
 	assert.Nil(t, err)
 	loaded2, err := LoadPrivateKeys(filename2)
 	assert.Nil(t, err)
