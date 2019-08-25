@@ -38,7 +38,7 @@ type Client interface {
 }
 
 // CustomClient is a tendermint client wrapped to provide
-// simple access to the data structures used in bns.
+// simple access to the data structures used in custom modle.
 type CustomClient struct {
 	conn client.Client
 	// subscriber is a unique identifier for subscriptions
