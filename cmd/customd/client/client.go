@@ -370,7 +370,7 @@ func (cc *CustomClient) GetWallet(addr weave.Address) (*WalletResponse, error) {
 		return nil, err
 	}
 	if len(resp.Models) == 0 { // empty list or nil
-		return nil, nil
+		return nil, errors.Wrap(errors.ErrNotFound, "model not found")
 	}
 	// assume only one result
 	model := resp.Models[0]
@@ -420,7 +420,7 @@ func (cc *CustomClient) GetUser(addr weave.Address) (*UserResponse, error) {
 		return nil, err
 	}
 	if len(resp.Models) == 0 { // empty list or nil
-		return nil, nil // no wallet
+		return nil, errors.Wrap(errors.ErrNotFound, "model not found")
 	}
 	// assume only one result
 	model := resp.Models[0]
