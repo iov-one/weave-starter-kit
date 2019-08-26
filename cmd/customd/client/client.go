@@ -408,14 +408,14 @@ type UserResponse struct {
 // for a given address if it was ever used.
 // If it returns (nil, nil), then this address never signed
 // a transaction before (and can use nonce = 0)
-func (b *CustomClient) GetUser(addr weave.Address) (*UserResponse, error) {
+func (cc *CustomClient) GetUser(addr weave.Address) (*UserResponse, error) {
 	// make sure we send a valid address to the server
 	err := addr.Validate()
 	if err != nil {
 		return nil, errors.Wrap(err, "invalid address")
 	}
 
-	resp, err := b.AbciQuery("/auth", addr)
+	resp, err := cc.AbciQuery("/auth", addr)
 	if err != nil {
 		return nil, err
 	}
