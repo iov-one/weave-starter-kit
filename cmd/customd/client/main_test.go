@@ -42,7 +42,6 @@ func getChainID() string {
 func TestMain(m *testing.M) {
 	faucet = GenPrivateKey()
 
-	// TODO: check out config file...
 	config := rpctest.GetConfig()
 	config.Moniker = "SetInTestMain"
 

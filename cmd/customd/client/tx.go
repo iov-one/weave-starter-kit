@@ -27,7 +27,6 @@ func BuildSendTx(source, destination weave.Address, amount coin.Coin, memo strin
 				Amount:      &amount,
 				Memo:        memo,
 			},
-			// TODO: add fees, etc...
 		},
 	}
 }
