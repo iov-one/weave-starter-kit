@@ -2,12 +2,13 @@ package client
 
 import "encoding/json"
 
-// ToString is a generic stringer which outputs
+// ToJsonString is a generic stringer which outputs
 // a struct in its equivalent (indented) json representation
-func ToString(d interface{}) string {
+// If json marshalling not sucessful returns error
+func ToJsonString(d interface{}) (string, error) {
 	s, err := json.MarshalIndent(d, "", "	")
 	if err != nil {
-		return err.Error()
+		return "", err
 	}
-	return string(s)
+	return string(s), nil
 }

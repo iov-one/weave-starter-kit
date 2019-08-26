@@ -23,36 +23,55 @@ func toWeaveAddress(t *testing.T, addr string) weave.Address {
 	return d
 }
 
-func wsFromFile(t *testing.T, wsFile string) WalletStore {
+func wsFromFile(t *testing.T, wsFile string) (*WalletStore, error) {
 	w := WalletStore{}
 	err := w.LoadFromFile(wsFile, defaults)
 	assert.Nil(t, err)
-	t.Log(ToString(w))
 
-	return w
+	wsJson, err := ToJsonString(w)
+	if err != nil {
+		return nil, err
+	}
+
+	t.Log(wsJson)
+
+	return &w, nil
 }
 
-func wsFromJSON(t *testing.T, ws json.RawMessage) WalletStore {
+func wsFromJSON(t *testing.T, ws json.RawMessage) (*WalletStore, error) {
 	w := WalletStore{}
 	err := w.LoadFromJSON(ws, defaults)
 	assert.Nil(t, err)
-	t.Log(ToString(w))
 
-	return w
+	wsJson, err := ToJsonString(w)
+	if err != nil {
+		return nil, err
+	}
+	t.Log(wsJson)
+
+	return &w, nil
 }
 
-func wsFromGenesisFile(t *testing.T, wsFile string) WalletStore {
+func wsFromGenesisFile(t *testing.T, wsFile string) (*WalletStore, error) {
 	w := WalletStore{}
 	err := w.LoadFromGenesisFile(wsFile, defaults)
 	assert.Nil(t, err)
-	t.Log(ToString(w))
 
-	return w
+	wsJson, err := ToJsonString(w)
+	if err != nil {
+		return nil, err
+	}
+	t.Log(wsJson)
+
+	return &w, nil
 }
 
 func TestMergeWalletStore(t *testing.T) {
-	w1 := wsFromGenesisFile(t, "./testdata/genesis.json")
-	w2 := wsFromFile(t, "./testdata/wallets.json")
+	w1, err := wsFromGenesisFile(t, "./testdata/genesis.json")
+	assert.Nil(t, err)
+	w2, err := wsFromFile(t, "./testdata/wallets.json")
+	assert.Nil(t, err)
+
 	expected := WalletStore{
 		Wallets: []cash.GenesisAccount{
 			{
@@ -106,13 +125,15 @@ func TestMergeWalletStore(t *testing.T) {
 		},
 	}
 
-	actual := MergeWalletStore(w1, w2)
+	actual := MergeWalletStore(*w1, *w2)
 	assert.Equal(t, expected, actual)
 }
 
 func TestMergeWithEmptyWallet(t *testing.T) {
-	w1 := wsFromJSON(t, []byte(`{}`))
-	w2 := wsFromFile(t, "./testdata/wallets.json")
+	w1, err := wsFromJSON(t, []byte(`{}`))
+	assert.Nil(t, err)
+	w2, err := wsFromFile(t, "./testdata/wallets.json")
+	assert.Nil(t, err)
 
 	expected := WalletStore{
 		Wallets: []cash.GenesisAccount{
@@ -143,7 +164,7 @@ func TestMergeWithEmptyWallet(t *testing.T) {
 		},
 	}
 
-	actual := MergeWalletStore(w1, w2)
+	actual := MergeWalletStore(*w1, *w2)
 	assert.Equal(t, expected, actual)
 }
 
@@ -158,7 +179,8 @@ func TestKeyGen(t *testing.T) {
 
 	for testName, useCase := range useCases {
 		t.Run(testName, func(t *testing.T) {
-			w := wsFromJSON(t, []byte(useCase.W))
+			w, err := wsFromJSON(t, []byte(useCase.W))
+			assert.Nil(t, err)
 			assert.Equal(t, useCase.N, len(w.Keys))
 		})
 	}
