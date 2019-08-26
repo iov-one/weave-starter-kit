@@ -24,12 +24,22 @@ var QueryNewBlockHeader = tmtypes.EventQueryNewBlockHeader
 
 // Client is an interface to interact with weave apps
 type Client interface {
+	// TendermintClient returns the underlying tendermint client
 	TendermintClient() client.Client
+	// GetUser will return nonce and public key registered
+	// for a given address if it was ever used.
 	GetUser(addr weave.Address) (*UserResponse, error)
+	// GetWallet will return a wallet given an address
 	GetWallet(addr weave.Address) (*WalletResponse, error)
+	// BroadcastTx serializes a signed transaction and writes to the
+	// blockchain. It returns when the tx is committed to the blockchain.
 	BroadcastTx(tx weave.Tx) BroadcastTxResponse
+	// BroadcastTxAsync can be run in a goroutine and will output the
+	// result or error to the given channel.
 	BroadcastTxAsync(tx weave.Tx, out chan<- BroadcastTxResponse)
+	// BroadcastTxSync brodcasts transactions synchronously
 	BroadcastTxSync(tx weave.Tx, timeout time.Duration) BroadcastTxResponse
+	// AbciQuery calls abci query on tendermint rpc.
 	AbciQuery(path string, data []byte) (AbciResponse, error)
 }
 
