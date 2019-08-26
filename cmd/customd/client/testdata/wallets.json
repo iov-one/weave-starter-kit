@@ -5,15 +5,6 @@
     },
     {
       "address": "d4821fd051696273d09e1fbad0ebe5b5060787a7"
-    },
-    {
-      "coins": [
-        {
-          "whole": 987654321,
-          "fractional": 5555555,
-          "ticker": "CSTM"
-        }
-      ]
     }
   ],
   "consensus_params": {

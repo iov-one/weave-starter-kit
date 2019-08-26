@@ -2,7 +2,6 @@ package client
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"strings"
 
@@ -33,8 +32,6 @@ func MergeWalletStore(w1, w2 WalletStore) WalletStore {
 // LoadFromJSON loads a wallet from a json stream
 // It will generate private keys for wallets without an Address
 func (w *WalletStore) LoadFromJSON(msg json.RawMessage, defaults coin.Coin) error {
-	fmt.Printf("\nLoading new wallets from JSON %s\n", string(msg))
-
 	if len(msg) == 0 {
 		*w = WalletStore{}
 		return nil
@@ -53,7 +50,6 @@ func (w *WalletStore) LoadFromJSON(msg json.RawMessage, defaults coin.Coin) erro
 // LoadFromFile loads a wallet from a file
 // It will generate private keys for wallets without an Address
 func (w *WalletStore) LoadFromFile(file string, defaults coin.Coin) error {
-	fmt.Printf("\nLoading new wallets from %s\n", file)
 	newWallet, err := ioutil.ReadFile(file)
 	if err != nil {
 		return err
@@ -65,7 +61,6 @@ func (w *WalletStore) LoadFromFile(file string, defaults coin.Coin) error {
 // LoadFromGenesisFile loads a wallet from a tendermint genesis file
 // It will generate private keys for wallets without an Address
 func (w *WalletStore) LoadFromGenesisFile(file string, defaults coin.Coin) error {
-	fmt.Printf("Loading genesis file from %s\n", file)
 	genesis, err := tmtype.GenesisDocFromFile(file)
 	if err != nil {
 		return err
@@ -128,8 +123,6 @@ func (w WalletRequest) Normalize(defaults coin.Coin) (cash.GenesisAccount, *cryp
 	if len(addr) == 0 {
 		privKey = GenPrivateKey()
 		addr = privKey.PublicKey().Address()
-
-		fmt.Printf("Generating private key: %X\n\n", privKey)
 	}
 
 	return cash.GenesisAccount{
