@@ -420,7 +420,7 @@ func (cc *CustomClient) GetUser(addr weave.Address) (*UserResponse, error) {
 		return nil, err
 	}
 	if len(resp.Models) == 0 { // empty list or nil
-		return nil, errors.Wrap(errors.ErrNotFound, "model not found")
+		return nil, nil
 	}
 	// assume only one result
 	model := resp.Models[0]

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/tendermint/tendermint/rpc/client"
 	rpctest "github.com/tendermint/tendermint/rpc/test"
@@ -49,7 +50,7 @@ func TestWalletQuery(t *testing.T) {
 	// missing account returns nothing
 	missing := GenPrivateKey().PublicKey().Address()
 	wallet, err := customd.GetWallet(missing)
-	assert.Nil(t, err)
+	assert.IsErr(t, errors.ErrNotFound, err)
 	assert.Nil(t, wallet)
 
 	// genesis account returns something
