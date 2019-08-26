@@ -67,14 +67,14 @@ func initApp(config *cfg.Config, addr weave.Address) (abci.Application, error) {
 		Logger: logger,
 		Debug:  false,
 	}
-	bcp, err := customd.GenerateApp(opts)
+	customd, err := customd.GenerateApp(opts)
 	if err != nil {
 		return nil, err
 	}
 
 	// generate genesis file...
 	err = initGenesis(config.GenesisFile(), addr)
-	return bcp, err
+	return customd, err
 }
 
 func initGenesis(filename string, addr weave.Address) error {
