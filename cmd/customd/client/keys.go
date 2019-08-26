@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/iov-one/weave/crypto"
-	"github.com/pkg/errors"
+	"github.com/iov-one/weave/errors"
 )
 
 // KeyPerm is the file permissions for saved private keys
@@ -26,7 +26,7 @@ func DecodePrivateKeyFromSeed(hexSeed string) (*crypto.PrivateKey, error) {
 		return nil, err
 	}
 	if len(data) != 64 {
-		return nil, errors.New("invalid key")
+		return nil, errors.Wrap(ErrInvalid, "key")
 	}
 	key := &crypto.PrivateKey{Priv: &crypto.PrivateKey_Ed25519{Ed25519: data}}
 	return key, nil
@@ -84,7 +84,7 @@ func SavePrivateKey(key *crypto.PrivateKey, filename string, force bool) error {
 		return ioutil.WriteFile(filename, []byte(hexKey), KeyPerm)
 	}
 
-	return errors.Errorf("force write is not enabled for file: %s", filename)
+	return errors.Wrapf(ErrPermission, "file: %s", filename)
 }
 
 // LoadPrivateKeys will load an array of private keys from a file,
@@ -134,7 +134,7 @@ func SavePrivateKeys(keys []*crypto.PrivateKey, filename string, force bool) err
 		return ioutil.WriteFile(filename, data, KeyPerm)
 	}
 
-	return errors.Errorf("force write is not enabled for file: %s", filename)
+	return errors.Wrapf(ErrPermission, "file: %s", filename)
 }
 
 // KeysByAddress takes a list of keys and creates a map
@@ -152,7 +152,7 @@ func KeysByAddress(keys []*crypto.PrivateKey) map[string]*crypto.PrivateKey {
 func fileExists(path string) (bool, error) {
 	_, err := os.Stat(path)
 	if err == nil {
-		return false, errors.Errorf("overwrite refused: %s", path)
+		return false, errors.Wrapf(ErrPermission, "path: %s", path)
 	}
 	return true, nil
 }

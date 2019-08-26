@@ -3,14 +3,13 @@ package client
 import (
 	"context"
 	"encoding/hex"
-	"fmt"
 	"sync"
 	"time"
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/app"
+	"github.com/iov-one/weave/errors"
 	"github.com/iov-one/weave/x/sigs"
-	"github.com/pkg/errors"
 	cmn "github.com/tendermint/tendermint/libs/common"
 	tmpubsub "github.com/tendermint/tendermint/libs/pubsub"
 	"github.com/tendermint/tendermint/rpc/client"
@@ -165,7 +164,7 @@ func (cc *CustomClient) AbciQuery(path string, data []byte) (AbciResponse, error
 	}
 	resp := q.Response
 	if resp.IsErr() {
-		return out, errors.Errorf("(%d): %s", resp.Code, resp.Log)
+		return out, errors.ABCIError(resp.Code, resp.Log)
 	}
 	out.Height = resp.Height
 
@@ -207,11 +206,11 @@ func (b BroadcastTxResponse) IsError() error {
 	}
 	if b.Response.CheckTx.IsErr() {
 		ctx := b.Response.CheckTx
-		return errors.Errorf("CheckTx error: (%d) %s", ctx.Code, ctx.Log)
+		return errors.Wrap(errors.ABCIError(ctx.Code, ctx.Log), "CheckTx error")
 	}
 	if b.Response.DeliverTx.IsErr() {
 		dtx := b.Response.DeliverTx
-		return errors.Errorf("CheckTx error: (%d) %s", dtx.Code, dtx.Log)
+		return errors.Wrap(errors.ABCIError(dtx.Code, dtx.Log), "DeliverTx error")
 	}
 	return nil
 }
@@ -241,7 +240,8 @@ func (cc *CustomClient) BroadcastTxSync(tx weave.Tx, timeout time.Duration) Broa
 		return BroadcastTxResponse{Error: err}
 	}
 	if res.Code != 0 {
-		return BroadcastTxResponse{Error: errors.WithMessage(fmt.Errorf("CheckTx failed with code %d", res.Code), res.Log)}
+		err = errors.Wrap(errors.ABCIError(res.Code, res.Log), "CheckTx error")
+		return BroadcastTxResponse{Error: err}
 	}
 
 	// and wait for confirmation
@@ -253,7 +253,8 @@ func (cc *CustomClient) BroadcastTxSync(tx weave.Tx, timeout time.Duration) Broa
 	txe, ok := evt.(tmtypes.EventDataTx)
 	if !ok {
 		if err != nil {
-			return BroadcastTxResponse{Error: fmt.Errorf("WaitForOneEvent did not return an EventDataTx object")}
+			err = errors.Wrap(err, "WaitForOneEvent did not return an EventDataTx object")
+			return BroadcastTxResponse{Error: err}
 		}
 	}
 
@@ -285,7 +286,7 @@ func (cc *CustomClient) WaitForTxEvent(tx tmtypes.Tx, evtTyp string, timeout tim
 	case evt := <-evts:
 		return evt.Data.(tmtypes.TMEventData), nil
 	case <-ctx.Done():
-		return nil, errors.New("timed out waiting for event")
+		return nil, errors.Wrap(errors.ErrTimeout, "waiting for event timed out")
 	}
 }
 
@@ -361,7 +362,7 @@ func (cc *CustomClient) GetWallet(addr weave.Address) (*WalletResponse, error) {
 	// make sure we send a valid address to the server
 	err := addr.Validate()
 	if err != nil {
-		return nil, errors.WithMessage(err, "Invalid Address")
+		return nil, errors.Wrap(err, "invalid address")
 	}
 
 	resp, err := cc.AbciQuery("/wallets", addr)
@@ -376,7 +377,7 @@ func (cc *CustomClient) GetWallet(addr weave.Address) (*WalletResponse, error) {
 	// make sure the return value is expected
 	acct := walletKeyToAddr(model.Key)
 	if !addr.Equals(acct) {
-		return nil, errors.Errorf("Mismatch. Queried %s, returned %s", addr, acct)
+		return nil, errors.Wrapf(ErrNoMatch, "queried %s, returned %s", addr, acct)
 	}
 	out := WalletResponse{
 		Address: acct,
@@ -411,7 +412,7 @@ func (b *CustomClient) GetUser(addr weave.Address) (*UserResponse, error) {
 	// make sure we send a valid address to the server
 	err := addr.Validate()
 	if err != nil {
-		return nil, errors.WithMessage(err, "Invalid Address")
+		return nil, errors.Wrap(err, "invalid address")
 	}
 
 	resp, err := b.AbciQuery("/auth", addr)
@@ -427,7 +428,7 @@ func (b *CustomClient) GetUser(addr weave.Address) (*UserResponse, error) {
 	// make sure the return value is expected
 	acct := userKeyToAddr(model.Key)
 	if !addr.Equals(acct) {
-		return nil, errors.Errorf("Mismatch. Queried %s, returned %s", addr, acct)
+		return nil, errors.Wrapf(ErrNoMatch, "queried %s, returned %s", addr, acct)
 	}
 	out := UserResponse{
 		Address: acct,
