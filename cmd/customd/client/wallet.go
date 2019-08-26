@@ -74,31 +74,6 @@ func (w *WalletStore) LoadFromGenesisFile(file string, defaults coin.Coin) error
 	return w.LoadFromJSON(genesis.AppState, defaults)
 }
 
-// MaybeCoin is like coin.Coin, but with pointers instead
-// This allows to distinguish between set values and missing ones
-type MaybeCoin struct {
-	Whole      *int64  `json:"whole,omitempty"`
-	Fractional *int64  `json:"fractional,omitempty"`
-	Ticker     *string `json:"ticker,omitempty"`
-}
-
-// WithDefaults fills the gaps in a maybe coin by replacing
-// missing values with default ones
-func (m MaybeCoin) WithDefaults(defaults coin.Coin) coin.Coin {
-	res := defaults
-	// apply all set values, even if they are the zero value
-	if m.Whole != nil {
-		res.Whole = *m.Whole
-	}
-	if m.Fractional != nil {
-		res.Fractional = *m.Fractional
-	}
-	if m.Ticker != nil {
-		res.Ticker = *m.Ticker
-	}
-	return res
-}
-
 // WalletRequests contains a collection of MaybeWalletRequest
 type WalletRequests struct {
 	Wallets []WalletRequest `json:"cash"`
@@ -108,7 +83,7 @@ type WalletRequests struct {
 // To differentiate between 0 and missing
 type WalletRequest struct {
 	Address weave.Address `json:"address"`
-	Coins   MaybeCoins    `json:"coins,omitempty"`
+	Coins   coin.Coins    `json:"coins,omitempty"`
 }
 
 // WalletResponse is a response on a query for a wallet
@@ -144,8 +119,7 @@ func (w WalletRequest) Normalize(defaults coin.Coin) (cash.GenesisAccount, *cryp
 		coins = coin.Coins{defaults.Clone()}
 	} else {
 		for _, coin := range w.Coins {
-			c := coin.WithDefaults(defaults)
-			coins = append(coins, &c)
+			coins = append(coins, coin)
 		}
 	}
 
@@ -163,9 +137,6 @@ func (w WalletRequest) Normalize(defaults coin.Coin) (cash.GenesisAccount, *cryp
 		Set:     cash.Set{Coins: coins},
 	}, privKey
 }
-
-// MaybeCoins could be nil or Coins
-type MaybeCoins []*MaybeCoin
 
 // FindCoinByTicker returns coins with equal tickers
 func FindCoinByTicker(coins coin.Coins, ticker string) (*coin.Coin, bool) {

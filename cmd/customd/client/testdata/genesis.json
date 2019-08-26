@@ -24,6 +24,7 @@
         "coins": [
           {
             "whole": 123456789,
+            "fractional": 5555555,
             "ticker": "CSTM"
           }
         ]
@@ -34,6 +35,7 @@
         "coins": [
           {
             "whole": 987654321,
+            "fractional": 5555555,
             "ticker": "CSTM"
           }
         ]
