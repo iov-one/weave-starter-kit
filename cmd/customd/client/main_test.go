@@ -11,6 +11,7 @@ import (
 	weaveClient "github.com/iov-one/weave/client"
 	"github.com/iov-one/weave/coin"
 	"github.com/iov-one/weave/commands/server"
+	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/migration"
 	"github.com/iov-one/weave/x/cash"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -32,7 +33,7 @@ var logger = log.NewNopLogger() // log.NewTMLogger()
 
 // useful values for test cases
 var node *nm.Node
-var faucet *PrivateKey
+var faucet *crypto.PrivateKey
 
 func getChainID() string {
 	return rpctest.GetConfig().ChainID()

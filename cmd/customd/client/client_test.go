@@ -9,6 +9,7 @@ import (
 	"github.com/iov-one/weave/weavetest/assert"
 	"github.com/tendermint/tendermint/rpc/client"
 	rpctest "github.com/tendermint/tendermint/rpc/test"
+	tmtypes "github.com/tendermint/tendermint/types"
 )
 
 // blocks go by fast, no need to wait seconds....
@@ -131,7 +132,7 @@ func TestSubscribeHeaders(t *testing.T) {
 	conn := NewLocalConnection(node)
 	bcp := NewClient(conn)
 
-	headers := make(chan *Header, 4)
+	headers := make(chan *tmtypes.Header, 4)
 	cancel, err := bcp.SubscribeHeaders(headers)
 	assert.Nil(t, err)
 

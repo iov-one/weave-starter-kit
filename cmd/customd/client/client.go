@@ -18,9 +18,10 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 )
 
+// BroadcastTxSyncDefaultTimeOut timeout for sync tx broadcasting
 const BroadcastTxSyncDefaultTimeOut = 15 * time.Second
 
-//var QueryNewBlockHeader = tmtypes.EventQueryNewBlockHeader
+var QueryNewBlockHeader = tmtypes.EventQueryNewBlockHeader
 
 // Client is an interface to interact with weave apps
 type Client interface {
@@ -50,6 +51,7 @@ func NewClient(conn client.Client) *CustomClient {
 	}
 }
 
+// TendermintClient returns underlying tendermint client
 func (cc *CustomClient) TendermintClient() client.Client {
 	return cc.conn
 }
@@ -186,6 +188,7 @@ func (cc *CustomClient) AbciQuery(path string, data []byte) (AbciResponse, error
 	return out, err
 }
 
+// TxSearch searches transactions using underlying tendermint client
 func (cc *CustomClient) TxSearch(query string, prove bool, page, perPage int) (*ctypes.ResultTxSearch, error) {
 	return cc.conn.TxSearch(query, prove, page, perPage)
 }
@@ -226,6 +229,7 @@ func (cc *CustomClient) BroadcastTx(tx weave.Tx) BroadcastTxResponse {
 	return res
 }
 
+// BroadcastTxSync brodcasts transactions synchronously
 func (cc *CustomClient) BroadcastTxSync(tx weave.Tx, timeout time.Duration) BroadcastTxResponse {
 	data, err := tx.Marshal()
 	if err != nil {
@@ -262,6 +266,7 @@ func (cc *CustomClient) BroadcastTxSync(tx weave.Tx, timeout time.Duration) Broa
 	}
 }
 
+// WaitForTxEvent listens for and particular event type of evtTyp to be fired
 func (cc *CustomClient) WaitForTxEvent(tx tmtypes.Tx, evtTyp string, timeout time.Duration) (tmtypes.TMEventData, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()

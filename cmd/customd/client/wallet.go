@@ -8,6 +8,7 @@ import (
 
 	"github.com/iov-one/weave"
 	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/x/cash"
 	tmtype "github.com/tendermint/tendermint/types"
 )
@@ -16,7 +17,7 @@ import (
 // It also contains private keys generated for wallets without an Address
 type WalletStore struct {
 	Wallets []cash.GenesisAccount `json:"wallets"`
-	Keys    []*PrivateKey         `json:"-"`
+	Keys    []*crypto.PrivateKey  `json:"-"`
 }
 
 // MergeWalletStore merges two WalletStore
@@ -124,7 +125,7 @@ func (w WalletRequests) Normalize(defaults coin.Coin) WalletStore {
 	}
 
 	for i, w := range w.Wallets {
-		var newKey *PrivateKey
+		var newKey *crypto.PrivateKey
 		out.Wallets[i], newKey = w.Normalize(defaults)
 
 		if newKey != nil {
@@ -137,7 +138,7 @@ func (w WalletRequests) Normalize(defaults coin.Coin) WalletStore {
 
 // Normalize returns corresponding cash.GenesisAccount
 // with default values. It will generate private keys when there is no Address
-func (w WalletRequest) Normalize(defaults coin.Coin) (cash.GenesisAccount, *PrivateKey) {
+func (w WalletRequest) Normalize(defaults coin.Coin) (cash.GenesisAccount, *crypto.PrivateKey) {
 	var coins coin.Coins
 	if len(w.Coins) == 0 {
 		coins = coin.Coins{defaults.Clone()}
@@ -149,7 +150,7 @@ func (w WalletRequest) Normalize(defaults coin.Coin) (cash.GenesisAccount, *Priv
 	}
 
 	addr := w.Address
-	var privKey *PrivateKey // generated key if any
+	var privKey *crypto.PrivateKey // generated key if any
 	if len(addr) == 0 {
 		privKey = GenPrivateKey()
 		addr = privKey.PublicKey().Address()
@@ -163,8 +164,10 @@ func (w WalletRequest) Normalize(defaults coin.Coin) (cash.GenesisAccount, *Priv
 	}, privKey
 }
 
+// MaybeCoins could be nil or Coins
 type MaybeCoins []*MaybeCoin
 
+// FindCoinByTicker returns coins with equal tickers
 func FindCoinByTicker(coins coin.Coins, ticker string) (*coin.Coin, bool) {
 	for _, coin := range coins {
 		if strings.EqualFold(ticker, coin.Ticker) {

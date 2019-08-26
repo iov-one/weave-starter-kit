@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/weavetest/assert"
 )
 
@@ -103,9 +104,9 @@ func TestSaveLoadMultipleKeys(t *testing.T) {
 	private2 := GenPrivateKey()
 	private3 := GenPrivateKey()
 
-	empty := []*PrivateKey{}
-	one := []*PrivateKey{private}
-	two := []*PrivateKey{private2, private3}
+	empty := []*crypto.PrivateKey{}
+	one := []*crypto.PrivateKey{private}
+	two := []*crypto.PrivateKey{private2, private3}
 
 	// Save and load key
 	err = SavePrivateKeys(empty, filename, true)
@@ -141,9 +142,9 @@ func TestKeysByAddress(t *testing.T) {
 	private3 := GenPrivateKey()
 	addr3 := private3.PublicKey().Address().String()
 
-	empty := []*PrivateKey{}
-	one := []*PrivateKey{private}
-	keys := []*PrivateKey{private, private2, private3}
+	empty := []*crypto.PrivateKey{}
+	one := []*crypto.PrivateKey{private}
+	keys := []*crypto.PrivateKey{private, private2, private3}
 
 	lookup := KeysByAddress(empty)
 	assert.Equal(t, 0, len(lookup))

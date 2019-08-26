@@ -4,6 +4,7 @@ import (
 	"github.com/iov-one/weave"
 	customd "github.com/iov-one/weave-starter-kit/cmd/customd/app"
 	"github.com/iov-one/weave/coin"
+	"github.com/iov-one/weave/crypto"
 	"github.com/iov-one/weave/x/cash"
 	"github.com/iov-one/weave/x/sigs"
 	"github.com/iov-one/weave/x/validators"
@@ -32,7 +33,7 @@ func BuildSendTx(source, destination weave.Address, amount coin.Coin, memo strin
 }
 
 // SignTx modifies the tx in-place, adding signatures
-func SignTx(tx *customd.Tx, signer *PrivateKey, chainID string, nonce int64) error {
+func SignTx(tx *customd.Tx, signer *crypto.PrivateKey, chainID string, nonce int64) error {
 	sig, err := sigs.SignTx(signer, tx, chainID, nonce)
 	if err != nil {
 		return err

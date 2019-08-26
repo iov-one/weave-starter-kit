@@ -13,15 +13,14 @@ import (
 // KeyPerm is the file permissions for saved private keys
 const KeyPerm = 0600
 
-type PrivateKey = crypto.PrivateKey
-
 // GenPrivateKey creates a new random key.
 // Alias to simplify usage.
-func GenPrivateKey() *PrivateKey {
+func GenPrivateKey() *crypto.PrivateKey {
 	return crypto.GenPrivKeyEd25519()
 }
 
-func DecodePrivateKeyFromSeed(hexSeed string) (*PrivateKey, error) {
+// DecodePrivateKeyFromSeed decodes private key from seed string
+func DecodePrivateKeyFromSeed(hexSeed string) (*crypto.PrivateKey, error) {
 	data, err := hex.DecodeString(hexSeed)
 	if err != nil {
 		return nil, err
@@ -29,18 +28,18 @@ func DecodePrivateKeyFromSeed(hexSeed string) (*PrivateKey, error) {
 	if len(data) != 64 {
 		return nil, errors.New("invalid key")
 	}
-	key := &PrivateKey{Priv: &crypto.PrivateKey_Ed25519{Ed25519: data}}
+	key := &crypto.PrivateKey{Priv: &crypto.PrivateKey_Ed25519{Ed25519: data}}
 	return key, nil
 }
 
 // DecodePrivateKey reads a hex string created by EncodePrivateKey
 // and returns the original PrivateKey
-func DecodePrivateKey(hexKey string) (*PrivateKey, error) {
+func DecodePrivateKey(hexKey string) (*crypto.PrivateKey, error) {
 	data, err := hex.DecodeString(hexKey)
 	if err != nil {
 		return nil, err
 	}
-	var key PrivateKey
+	var key crypto.PrivateKey
 	err = key.Unmarshal(data)
 	if err != nil {
 		return nil, err
@@ -50,7 +49,7 @@ func DecodePrivateKey(hexKey string) (*PrivateKey, error) {
 
 // EncodePrivateKey stores the private key as a hex string
 // that can be saved and later loaded
-func EncodePrivateKey(key *PrivateKey) (string, error) {
+func EncodePrivateKey(key *crypto.PrivateKey) (string, error) {
 	data, err := key.Marshal()
 	if err != nil {
 		return "", err
@@ -60,7 +59,7 @@ func EncodePrivateKey(key *PrivateKey) (string, error) {
 
 // LoadPrivateKey will load a private key from a file,
 // Which was previously written by SavePrivateKey
-func LoadPrivateKey(filename string) (*PrivateKey, error) {
+func LoadPrivateKey(filename string) (*crypto.PrivateKey, error) {
 	raw, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -72,7 +71,7 @@ func LoadPrivateKey(filename string) (*PrivateKey, error) {
 // the named file
 //
 // Refuses to overwrite a file unless force is true
-func SavePrivateKey(key *PrivateKey, filename string, force bool) error {
+func SavePrivateKey(key *crypto.PrivateKey, filename string, force bool) error {
 	if force {
 		if fileExists, err := fileExists(filename); fileExists && err != nil {
 			return err
@@ -90,7 +89,7 @@ func SavePrivateKey(key *PrivateKey, filename string, force bool) error {
 
 // LoadPrivateKeys will load an array of private keys from a file,
 // Which was previously written by SavePrivateKeys
-func LoadPrivateKeys(filename string) ([]*PrivateKey, error) {
+func LoadPrivateKeys(filename string) ([]*crypto.PrivateKey, error) {
 	raw, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -102,7 +101,7 @@ func LoadPrivateKeys(filename string) ([]*PrivateKey, error) {
 		return nil, err
 	}
 
-	keys := make([]*PrivateKey, len(encoded))
+	keys := make([]*crypto.PrivateKey, len(encoded))
 	for i, hexKey := range encoded {
 		keys[i], err = DecodePrivateKey(hexKey)
 		if err != nil {
@@ -118,7 +117,7 @@ func LoadPrivateKeys(filename string) ([]*PrivateKey, error) {
 // write to the named file
 //
 // Refuses to overwrite a file unless force is true
-func SavePrivateKeys(keys []*PrivateKey, filename string, force bool) error {
+func SavePrivateKeys(keys []*crypto.PrivateKey, filename string, force bool) error {
 	if force {
 		var err error
 		encoded := make([]string, len(keys))
@@ -140,8 +139,8 @@ func SavePrivateKeys(keys []*PrivateKey, filename string, force bool) error {
 
 // KeysByAddress takes a list of keys and creates a map
 // to look up private keys by their (hex-encoded) address
-func KeysByAddress(keys []*PrivateKey) map[string]*PrivateKey {
-	res := make(map[string]*PrivateKey, len(keys))
+func KeysByAddress(keys []*crypto.PrivateKey) map[string]*crypto.PrivateKey {
+	res := make(map[string]*crypto.PrivateKey, len(keys))
 	for _, k := range keys {
 		addr := k.PublicKey().Address()
 		res[addr.String()] = k
