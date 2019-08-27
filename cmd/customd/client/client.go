@@ -3,7 +3,6 @@ package client
 import (
 	"context"
 	"encoding/hex"
-	"sync"
 	"time"
 
 	"github.com/iov-one/weave"
@@ -41,10 +40,12 @@ type Client interface {
 	BroadcastTxSync(tx weave.Tx, timeout time.Duration) BroadcastTxResponse
 	// AbciQuery calls abci query on tendermint rpc.
 	AbciQuery(path string, data []byte) (AbciResponse, error)
+	// NextNonce queries the blockchain for the next nonce
+	NextNonce(client Client, addr weave.Address) (int64, error)
 }
 
 // CustomClient is a tendermint client wrapped to provide
-// simple access to the data structures used in custom modle.
+// simple access to the data structures used in custom module.
 type CustomClient struct {
 	conn client.Client
 	// subscriber is a unique identifier for subscriptions
@@ -63,59 +64,6 @@ func NewClient(conn client.Client) *CustomClient {
 // TendermintClient returns underlying tendermint client
 func (cc *CustomClient) TendermintClient() client.Client {
 	return cc.conn
-}
-
-// Nonce has a client/address pair, queries for the nonce
-// and caches recent nonce locally to quickly sign
-type Nonce struct {
-	mutex     sync.Mutex
-	client    Client
-	addr      weave.Address
-	nonce     int64
-	fromQuery bool
-}
-
-// NewNonce creates a nonce for a client / address pair.
-// Call Query to force a query, Next to use cache if possible
-func NewNonce(client Client, addr weave.Address) *Nonce {
-	return &Nonce{client: client, addr: addr}
-}
-
-// Query always queries the blockchain for the next nonce
-func (n *Nonce) Query() (int64, error) {
-	user, err := n.client.GetUser(n.addr)
-	if err != nil {
-		return 0, err
-	}
-	n.mutex.Lock()
-	if user != nil {
-		n.nonce = user.UserData.Sequence
-	} else {
-		n.nonce = 0 // new account starts at 0
-	}
-	n.fromQuery = true
-	n.mutex.Unlock()
-	return n.nonce, nil
-}
-
-// Next will use a cached value if present, otherwise Query
-// It will always increment by 1, assuming last nonce
-// was properly used. This is designed for cases where
-// you want to rapidly generate many tranasactions without
-// querying the blockchain each time
-func (n *Nonce) Next() (int64, error) {
-	n.mutex.Lock()
-	initializedFromBlockchain := !n.fromQuery && n.nonce == 0
-	n.mutex.Unlock()
-	if initializedFromBlockchain {
-		return n.Query()
-	}
-	n.mutex.Lock()
-	n.nonce++
-	n.fromQuery = false
-	result := n.nonce
-	n.mutex.Unlock()
-	return result, nil
 }
 
 //************ generic (weave) functionality *************//
@@ -456,4 +404,18 @@ func (cc *CustomClient) GetUser(addr weave.Address) (*UserResponse, error) {
 // key is the address prefixed with "sigs:"
 func userKeyToAddr(key []byte) weave.Address {
 	return key[5:]
+}
+
+// NextNonce queries the blockchain for the next nonce
+// returns 0 if the address never used
+func (cc CustomClient) NextNonce(addr weave.Address) (int64, error) {
+	user, err := cc.GetUser(addr)
+	if err != nil {
+		return 0, err
+	}
+	if user != nil {
+		return user.UserData.Sequence, nil
+	}
+	// new account starts at 0
+	return 0, nil
 }

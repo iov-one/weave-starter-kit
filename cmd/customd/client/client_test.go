@@ -70,26 +70,36 @@ func TestWalletQuery(t *testing.T) {
 }
 
 func TestNonce(t *testing.T) {
-	addr := GenPrivateKey().PublicKey().Address()
+	src := faucet.PublicKey().Address()
+	rcpt := GenPrivateKey().PublicKey().Address()
 	conn := NewLocalConnection(node)
 	customd := NewClient(conn)
+	chainID := getChainID()
 
-	nonce := NewNonce(customd, addr)
-	n, err := nonce.Next()
+	n, err := customd.NextNonce(src)
 	assert.Nil(t, err)
 	assert.Equal(t, int64(0), n)
 
-	n, err = nonce.Next()
-	assert.Nil(t, err)
-	assert.Equal(t, int64(1), n)
-
-	n, err = nonce.Next()
-	assert.Nil(t, err)
-	assert.Equal(t, int64(2), n)
-
-	n, err = nonce.Query()
+	// address unused should return 0
+	n, err = customd.NextNonce(src)
 	assert.Nil(t, err)
 	assert.Equal(t, int64(0), n)
+
+	// prepare the tx
+	amount := coin.Coin{Whole: 1000, Ticker: initBalance.Ticker}
+	tx := BuildSendTx(src, rcpt, amount, "Send 1")
+	n, err = customd.NextNonce(src)
+	assert.Nil(t, err)
+	SignTx(tx, faucet, chainID, n)
+
+	// now post it
+	res := customd.BroadcastTxSync(tx, time.Minute)
+	assert.Nil(t, res.IsError())
+
+	// verify nonce incremented on chain
+	n1, err := customd.NextNonce(src)
+	assert.Nil(t, err)
+	assert.Equal(t, n+1, n1)
 }
 
 func TestSendMoney(t *testing.T) {
@@ -99,22 +109,21 @@ func TestSendMoney(t *testing.T) {
 	rcpt := GenPrivateKey().PublicKey().Address()
 	src := faucet.PublicKey().Address()
 
-	nonce := NewNonce(customd, src)
 	chainID := getChainID()
 
 	// build the tx
 	amount := coin.Coin{Whole: 1000, Ticker: initBalance.Ticker}
 	tx := BuildSendTx(src, rcpt, amount, "Send 1")
-	n, err := nonce.Query()
+	n, err := customd.NextNonce(src)
 	assert.Nil(t, err)
 	SignTx(tx, faucet, chainID, n)
 
 	// now post it
-	res := customd.BroadcastTx(tx)
+	res := customd.BroadcastTxSync(tx, time.Minute)
 	assert.Nil(t, res.IsError())
 
 	// verify nonce incremented on chain
-	n2, err := nonce.Query()
+	n2, err := customd.NextNonce(src)
 	assert.Nil(t, err)
 	assert.Equal(t, n+1, n2)
 
@@ -167,22 +176,20 @@ func TestSendMultipleTx(t *testing.T) {
 	rcpt := friend.PublicKey().Address()
 	src := faucet.PublicKey().Address()
 
-	nonce := NewNonce(customd, src)
 	chainID, err := customd.ChainID()
 	amount := coin.Coin{Whole: 1000, Ticker: initBalance.Ticker}
 	assert.Nil(t, err)
 
 	// a prep transaction, so the recipient has something to send
 	prep := BuildSendTx(src, rcpt, amount, "Send 1")
-	n, err := nonce.Next()
+	n, err := customd.NextNonce(src)
 	assert.Nil(t, err)
 	SignTx(prep, faucet, chainID, n)
 
 	// from sender with a different nonce
 	tx := BuildSendTx(src, rcpt, amount, "Send 2")
-	n, err = nonce.Next()
 	assert.Nil(t, err)
-	SignTx(tx, faucet, chainID, n)
+	SignTx(tx, faucet, chainID, n+1)
 
 	// and a third one to return from rcpt to sender
 	// nonce must be 0
@@ -190,7 +197,7 @@ func TestSendMultipleTx(t *testing.T) {
 	SignTx(tx2, friend, chainID, 0)
 
 	// first, we send the one transaction so the next two will succeed
-	prepResp := customd.BroadcastTx(prep)
+	prepResp := customd.BroadcastTxSync(prep, time.Minute)
 	assert.Nil(t, prepResp.IsError())
 	prepH := prepResp.Response.Height
 
