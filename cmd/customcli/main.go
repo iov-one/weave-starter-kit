@@ -29,12 +29,30 @@ import (
 // transaction, signing and submitting. They can be combined into a single
 // pipeline line:
 //
-//   $ customcli release-escrow -escrow 1 \
-//       | customcli as-proposal \
+//   $ customcli create-custom-state --inner-state 1 --address cstm1hx6vjcmsgj7wgu64ajdglrhpusl3fmercl8mxe \
 //       | customcli sign \
 //       | customcli submit
 //
-var commands = map[string]func(input io.Reader, output io.Writer, args []string) error{}
+var commands = map[string]func(input io.Reader, output io.Writer, args []string) error{
+	"as-sequence":               cmdAsSequence,
+	"from-sequence":             cmdFromSequence,
+	"keyaddr":                   cmdKeyaddr,
+	"keygen":                    cmdKeygen,
+	"mnemonic":                  cmdMnemonic,
+	"multisig":                  cmdMultisig,
+	"query":                     cmdQuery,
+	"send-tokens":               cmdSendTokens,
+	"set-validators":            cmdSetValidators,
+	"sign":                      cmdSignTransaction,
+	"submit":                    cmdSubmitTransaction,
+	"version":                   cmdVersion,
+	"view":                      cmdTransactionView,
+	"with-fee":                  cmdWithFee,
+	"with-multisig":             cmdWithMultisig,
+	"with-multisig-participant": cmdWithMultisigParticipant,
+	// add your custom commands here
+	//"create-custom-state:  	 cmdCreateCustomState,
+}
 
 func main() {
 	if len(os.Args) == 1 {
