@@ -58,8 +58,8 @@ Execute a ABCI query and print JSON encoded result.
 		queryPath += "?" + weave.PrefixQueryMod
 	}
 
-	bnsClient := client.NewClient(client.NewHTTPConnection(*tmAddrFl))
-	resp, err := bnsClient.AbciQuery(queryPath, data)
+	customClient := client.NewClient(client.NewHTTPConnection(*tmAddrFl))
+	resp, err := customClient.AbciQuery(queryPath, data)
 	if err != nil {
 		return fmt.Errorf("failed to run query: %s", err)
 	}
