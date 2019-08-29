@@ -5,7 +5,7 @@ build:
 
 
 clean:
-	-rm bnscli
+	-rm customcli
 
 
 install:
