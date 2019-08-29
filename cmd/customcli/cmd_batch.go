@@ -90,20 +90,8 @@ declaration.
 # Copy this directly from the ExecuteBatchMsg defined in cmd/customd/app/codec.proto
 protobuf="
 cash.SendMsg cash_send_msg = 51;
-escrow.CreateMsg escrow_create_msg = 52;
-escrow.ReleaseMsg escrow_release_msg = 53;
-escrow.ReturnMsg escrow_return_msg = 54;
-escrow.UpdatePartiesMsg escrow_update_parties_msg = 55;
 multisig.CreateMsg multisig_create_msg = 56;
 multisig.UpdateMsg multisig_update_msg = 57;
-validators.ApplyDiffMsg validators_apply_diff_msg = 58;
-currency.CreateMsg currency_create_msg = 59;
-username.RegisterTokenMsg username_register_token_msg = 61;
-username.TransferTokenMsg username_transfer_token_msg = 62;
-username.ChangeTokenTargetsMsg username_change_token_targets_msg = 63;
-distribution.CreateMsg distribution_create_msg = 66;
-distribution.DistributeMsg distribution_msg = 67;
-distribution.ResetMsg distribution_reset_msg = 68;
 "
 
 while read -r m; do
