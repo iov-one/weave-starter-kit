@@ -17,32 +17,62 @@ find [godocs](http://godoc.org/github.com/iov-one/weave) more helpful.
 ### Requirements
 
 - [golang 1.11.4+](https://golang.org/doc/install)
-- [tendermint](https://github.com/tendermint/tendermint/blob/master/docs/introduction/install.md)
+- [tendermint 0.31.5](https://github.com/tendermint/tendermint/tree/v0.31.5)
+  - [Installation](https://github.com/tendermint/tendermint/blob/master/docs/introduction/install.md)
 - [weave](https://github.com/iov-one/weave)
   - `go get github.com/iov-one/weave`
 - [docker](https://docs.docker.com/install/)
 
+**Important**: At IOV we use [go modules](https://github.com/golang/go/wiki/Modules). You can append `export GO111MODULE=on` to `.rc` file of your favorite shell(`zsh, bash, fish, etc.`)
+
 ## Running the demo app
 
-**TODO**
+```sh
+cd <your-project-location>
+make            # install binary
+make inittm     # initilize tendermint config folder ~/.custom
+customd init    # initilize genesis
+make runtm      # run tendermint
+customd start   # run customd application
+```
 
-## Using for your own app.
+## Interacting with demo app
 
-You can copy or fork this repo. You will want to rename it to your proper path and then
+After `make`, `customcli` will be built and placed in go bin. You can play with `customcli`. Be sure that `customd` is running.
+
+```sh
+customcli send-tokens \
+        -src "seq:test/custom/1" \
+        -dst "seq:test/custom/2" \
+        -amount "4 CSTM" \
+        -memo "customcli test" | customcli view
+```
+
+## Using for your own app
+
+You have two options: fork or copy-replace.
+
+### Forking
+
+I recommend forking the repo if you want to test something out. Also merging the latest changes from `weave` will be easier.
+
+1. Fork the project
+2. Append `replace github.com/iov-one/weave-starter-kit => github.com/<username>/<project-name> v0.0.1` to `go.mod`. Example: [github.com/orkunkl/starter-kit-test](https://github.com/orkunkl/starter-kit-test/blob/master/go.mod#L15)
+
+### Copy then replace
+
+You can download the project and make the required replacement. You will want to adjust it to proper project path and then
 do a search and replace for `iov-one/weave-starter-kit` with your github project name.
 In particular:
 
-* prototool.yaml (import path)
-* all files in `cmd/mycoind`
-
-You will want to rename `mycoind` to the desired name of your application (chain).
-And then extend it. It is just a simple scaffolding to give the entry points into
-setting up an application and make it less daunting for developers.
+- prototool.yaml (import path)
+- all import paths
+- all files in `cmd`
 
 ## Building custom modules
 
-**TODO**
+`x` directory contains modules. `x/custom` directory is a basic module placeholder without any meaningful functionality. You can write your own module via copying examples from `custom` module. After you implement your module, write required code up to `cmd` folder to reflect the module on blockchain app.
 
 ## Protobuf tips
 
-**TODO**
+After you edit any `.proto` file, do not forget to run `make protoc` in projects root. Otherwise you will not see the changes in go code
