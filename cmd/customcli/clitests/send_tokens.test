@@ -2,8 +2,6 @@
 
 set -e
 
-msgs=`mktemp`
-
 customcli send-tokens \
 		-src "seq:test/custom/1" \
 		-dst "seq:test/custom/2" \
