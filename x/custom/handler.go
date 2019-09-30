@@ -92,7 +92,7 @@ func (h CreateTimedStateHandler) Check(ctx weave.Context, store weave.KVStore, t
 
 // Deliver creates an custom state and saves if all preconditions are met
 func (h CreateTimedStateHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
-	_, timedState, err := h.validate(ctx, store, tx)
+	msg, timedState, err := h.validate(ctx, store, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -100,6 +100,22 @@ func (h CreateTimedStateHandler) Deliver(ctx weave.Context, store weave.KVStore,
 	key, err := h.b.Put(store, nil, timedState)
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot store indexed state")
+	}
+
+	if msg.DeleteAt != 0 {
+		deleteTimedStateMsg := &DeleteTimedStateMsg{
+			Metadata:     msg.Metadata,
+			TimedStateID: key,
+		}
+		taskID, err := h.scheduler.Schedule(store, msg.DeleteAt.Time(), nil, deleteTimedStateMsg)
+		if err != nil {
+			return nil, errors.Wrap(err, "cannot schedule task to delete timed state")
+		}
+
+		timedState.DeleteTaskID = taskID
+		if _, err := h.b.Put(store, key, timedState); err != nil {
+			return nil, errors.Wrap(err, "failed to update timed state")
+		}
 	}
 
 	return &weave.DeliverResult{Data: key}, nil

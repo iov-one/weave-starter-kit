@@ -26,6 +26,7 @@ message TimedState {
   // DeleteAt is a deletion event that will take place in future
   // Demonstrates cron usage
   int64 delete_at = 5 [(gogoproto.casttype) = "github.com/iov-one/weave.UnixTime"];
+  bytes delete_task_id = 6 [(gogoproto.customname) = "DeleteTaskID"];
 }
 
 message State {

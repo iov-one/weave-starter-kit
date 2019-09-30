@@ -16,6 +16,8 @@ func TestValidateTimedState(t *testing.T) {
 	future := now.Add(time.Hour)
 	past := now.Add(time.Hour * time.Duration(-1))
 
+	deleteTaskID := weavetest.SequenceID(1)
+
 	cases := map[string]struct {
 		model    orm.Model
 		wantErrs map[string]*errors.Error
@@ -27,6 +29,7 @@ func TestValidateTimedState(t *testing.T) {
 				Str:            "cstm_string",
 				Byte:           []byte{0, 1},
 				DeleteAt:       future,
+				DeleteTaskID:   deleteTaskID,
 			},
 			wantErrs: map[string]*errors.Error{
 				"Metadata":       nil,
@@ -34,6 +37,7 @@ func TestValidateTimedState(t *testing.T) {
 				"Str":            nil,
 				"Byte":           nil,
 				"DeleteAt":       nil,
+				"DeleteTaskID":   nil,
 			},
 		},
 		"success, no id": {
@@ -43,6 +47,7 @@ func TestValidateTimedState(t *testing.T) {
 				Str:            "cstm_string",
 				Byte:           []byte{0, 1},
 				DeleteAt:       future,
+				DeleteTaskID:   deleteTaskID,
 			},
 			wantErrs: map[string]*errors.Error{
 				"Metadata":       nil,
@@ -50,6 +55,25 @@ func TestValidateTimedState(t *testing.T) {
 				"Str":            nil,
 				"Byte":           nil,
 				"DeleteAt":       nil,
+				"DeleteTaskID":   nil,
+			},
+		},
+		"success no delete task id": {
+			model: &TimedState{
+				Metadata:       &weave.Metadata{Schema: 1},
+				InnerStateEnum: InnerStateEnum_CaseOne,
+				Str:            "cstm_string",
+				Byte:           []byte{0, 1},
+				DeleteAt:       future,
+				DeleteTaskID:   nil,
+			},
+			wantErrs: map[string]*errors.Error{
+				"Metadata":       nil,
+				"InnerStateEnum": nil,
+				"Str":            nil,
+				"Byte":           nil,
+				"DeleteAt":       nil,
+				"DeleteTaskID":   nil,
 			},
 		},
 		"success, delete at is past": {
@@ -59,6 +83,7 @@ func TestValidateTimedState(t *testing.T) {
 				Str:            "cstm_string",
 				Byte:           []byte{0, 1},
 				DeleteAt:       past,
+				DeleteTaskID:   deleteTaskID,
 			},
 			wantErrs: map[string]*errors.Error{
 				"Metadata":       nil,
@@ -66,6 +91,7 @@ func TestValidateTimedState(t *testing.T) {
 				"Str":            nil,
 				"Byte":           nil,
 				"DeleteAt":       nil,
+				"DeleteTaskID":   nil,
 			},
 		},
 		"failure, missing metadata": {
@@ -74,6 +100,7 @@ func TestValidateTimedState(t *testing.T) {
 				Byte:           []byte{0, 1},
 				InnerStateEnum: InnerStateEnum_CaseOne,
 				DeleteAt:       future,
+				DeleteTaskID:   deleteTaskID,
 			},
 			wantErrs: map[string]*errors.Error{
 				"Metadata":       errors.ErrMetadata,
@@ -81,6 +108,7 @@ func TestValidateTimedState(t *testing.T) {
 				"Str":            nil,
 				"Byte":           nil,
 				"DeleteAt":       nil,
+				"DeleteTaskID":   nil,
 			},
 		},
 		"failure, missing str": {
@@ -89,6 +117,7 @@ func TestValidateTimedState(t *testing.T) {
 				Byte:           []byte{0, 1},
 				InnerStateEnum: InnerStateEnum_CaseOne,
 				DeleteAt:       future,
+				DeleteTaskID:   deleteTaskID,
 			},
 			wantErrs: map[string]*errors.Error{
 				"Metadata":       nil,
@@ -96,6 +125,7 @@ func TestValidateTimedState(t *testing.T) {
 				"Str":            errors.ErrEmpty,
 				"Byte":           nil,
 				"DeleteAt":       nil,
+				"DeleteTaskID":   nil,
 			},
 		},
 		"failure, str does not begin with 'cstm'": {
@@ -105,6 +135,7 @@ func TestValidateTimedState(t *testing.T) {
 				Byte:           []byte{0, 1},
 				InnerStateEnum: InnerStateEnum_CaseOne,
 				DeleteAt:       future,
+				DeleteTaskID:   deleteTaskID,
 			},
 			wantErrs: map[string]*errors.Error{
 				"Metadata":       nil,
@@ -112,14 +143,16 @@ func TestValidateTimedState(t *testing.T) {
 				"Str":            errors.ErrInput,
 				"Byte":           nil,
 				"DeleteAt":       nil,
+				"DeleteTaskID":   nil,
 			},
 		},
 		"failure, missing inner state enum": {
 			model: &TimedState{
-				Metadata: &weave.Metadata{Schema: 1},
-				Str:      "cstm_string",
-				Byte:     []byte{0, 1},
-				DeleteAt: future,
+				Metadata:     &weave.Metadata{Schema: 1},
+				Str:          "cstm_string",
+				Byte:         []byte{0, 1},
+				DeleteAt:     future,
+				DeleteTaskID: deleteTaskID,
 			},
 			wantErrs: map[string]*errors.Error{
 				"Metadata":       nil,
@@ -127,6 +160,7 @@ func TestValidateTimedState(t *testing.T) {
 				"String":         nil,
 				"Byte":           nil,
 				"DeleteAt":       nil,
+				"DeleteTaskID":   nil,
 			},
 		},
 		"failure, missing custom byte": {
@@ -135,6 +169,7 @@ func TestValidateTimedState(t *testing.T) {
 				Str:            "cstm_string",
 				InnerStateEnum: InnerStateEnum_CaseOne,
 				DeleteAt:       future,
+				DeleteTaskID:   deleteTaskID,
 			},
 			wantErrs: map[string]*errors.Error{
 				"Metadata":       nil,
@@ -142,6 +177,7 @@ func TestValidateTimedState(t *testing.T) {
 				"Str":            nil,
 				"Byte":           errors.ErrEmpty,
 				"DeleteAt":       nil,
+				"DeleteTaskID":   nil,
 			},
 		},
 	}
