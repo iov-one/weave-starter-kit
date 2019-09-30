@@ -58,37 +58,15 @@ func NewCreateTimedStateHandler(auth x.Authenticator, scheduler weave.Scheduler)
 }
 
 // validate does all common pre-processing between Check and Deliver
-func (h CreateTimedStateHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateTimedStateMsg, error) {
+func (h CreateTimedStateHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateTimedStateMsg, *TimedState, error) {
 	var msg CreateTimedStateMsg
 
 	if err := weave.LoadMsg(tx, &msg); err != nil {
-		return nil, errors.Wrap(err, "load msg")
+		return nil, nil, errors.Wrap(err, "load msg")
 	}
 
 	if msg.DeleteAt != 0 && weave.InThePast(ctx, msg.DeleteAt.Time()) {
-		return nil, errors.AppendField(nil, "DeleteAt", errors.ErrInput)
-	}
-
-	return &msg, nil
-}
-
-// Check just verifies it is properly formed and returns
-// the cost of executing it.
-func (h CreateTimedStateHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
-	_, err := h.validate(ctx, store, tx)
-	if err != nil {
-		return nil, err
-	}
-
-	return &weave.CheckResult{GasAllocated: newStateCost}, nil
-}
-
-// Deliver creates an custom state and saves if all preconditions are met
-func (h CreateTimedStateHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
-	msg, err := h.validate(ctx, store, tx)
-
-	if err != nil {
-		return nil, err
+		return nil, nil, errors.AppendField(nil, "DeleteAt", errors.ErrInput)
 	}
 
 	timedState := &TimedState{
@@ -97,6 +75,26 @@ func (h CreateTimedStateHandler) Deliver(ctx weave.Context, store weave.KVStore,
 		Str:            msg.Str,
 		Byte:           msg.Byte,
 		DeleteAt:       msg.DeleteAt,
+	}
+
+	return &msg, timedState, nil
+}
+
+// Check just verifies it is properly formed and returns
+// the cost of executing it.
+func (h CreateTimedStateHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+	if _, _, err := h.validate(ctx, store, tx); err != nil {
+		return nil, err
+	}
+
+	return &weave.CheckResult{GasAllocated: newStateCost}, nil
+}
+
+// Deliver creates an custom state and saves if all preconditions are met
+func (h CreateTimedStateHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+	_, timedState, err := h.validate(ctx, store, tx)
+	if err != nil {
+		return nil, err
 	}
 
 	key, err := h.b.Put(store, nil, timedState)
@@ -137,8 +135,7 @@ func (h DeleteTimedStateHandler) validate(ctx weave.Context, db weave.KVStore, t
 // Check just verifies it is properly formed and returns
 // the cost of executing it.
 func (h DeleteTimedStateHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
-	_, err := h.validate(ctx, store, tx)
-	if err != nil {
+	if _, err := h.validate(ctx, store, tx); err != nil {
 		return nil, err
 	}
 
@@ -148,12 +145,11 @@ func (h DeleteTimedStateHandler) Check(ctx weave.Context, store weave.KVStore, t
 // Deliver delete state if all preconditions are met
 func (h DeleteTimedStateHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
 	msg, err := h.validate(ctx, store, tx)
-
 	if err != nil {
 		return nil, err
 	}
-	err = h.b.Delete(store, msg.TimedStateID)
-	if err != nil {
+
+	if err = h.b.Delete(store, msg.TimedStateID); err != nil {
 		return nil, errors.Wrap(err, "cannot store indexed state")
 	}
 
@@ -179,33 +175,11 @@ func NewCreateStateHandler(auth x.Authenticator) weave.Handler {
 }
 
 // validate does all common pre-processing between Check and Deliver
-func (h CreateStateHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateStateMsg, error) {
+func (h CreateStateHandler) validate(ctx weave.Context, db weave.KVStore, tx weave.Tx) (*CreateStateMsg, *State, error) {
 	var msg CreateStateMsg
 
 	if err := weave.LoadMsg(tx, &msg); err != nil {
-		return nil, errors.Wrap(err, "load msg")
-	}
-
-	return &msg, nil
-}
-
-// Check just verifies it is properly formed and returns
-// the cost of executing it.
-func (h CreateStateHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
-	_, err := h.validate(ctx, store, tx)
-	if err != nil {
-		return nil, err
-	}
-
-	return &weave.CheckResult{GasAllocated: newStateCost}, nil
-}
-
-// Deliver creates an custom state and saves if all preconditions are met
-func (h CreateStateHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
-	msg, err := h.validate(ctx, store, tx)
-
-	if err != nil {
-		return nil, err
+		return nil, nil, errors.Wrap(err, "load msg")
 	}
 
 	now := weave.AsUnixTime(time.Now())
@@ -217,8 +191,27 @@ func (h CreateStateHandler) Deliver(ctx weave.Context, store weave.KVStore, tx w
 		CreatedAt:  now,
 	}
 
-	res, err := h.b.Put(store, nil, state)
+	return &msg, state, nil
+}
 
+// Check just verifies it is properly formed and returns
+// the cost of executing it.
+func (h CreateStateHandler) Check(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.CheckResult, error) {
+	if _, _, err := h.validate(ctx, store, tx); err != nil {
+		return nil, err
+	}
+
+	return &weave.CheckResult{GasAllocated: newStateCost}, nil
+}
+
+// Deliver creates an custom state and saves if all preconditions are met
+func (h CreateStateHandler) Deliver(ctx weave.Context, store weave.KVStore, tx weave.Tx) (*weave.DeliverResult, error) {
+	_, state, err := h.validate(ctx, store, tx)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := h.b.Put(store, nil, state)
 	if err != nil {
 		return nil, err
 	}
