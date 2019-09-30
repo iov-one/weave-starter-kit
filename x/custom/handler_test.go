@@ -140,6 +140,7 @@ func TestCreateTimedState(t *testing.T) {
 				var stored TimedState
 				err := bucket.One(kv, res.Data, &stored)
 
+				stored.DeleteTaskID = nil
 				assert.Nil(t, err)
 				assert.Equal(t, tc.expected, &stored)
 			}

@@ -44,6 +44,7 @@ func (m *TimedState) Copy() orm.CloneableData {
 		Str:            m.Str,
 		Byte:           copyBytes(m.Byte),
 		DeleteAt:       m.DeleteAt,
+		DeleteTaskID:   copyBytes(m.DeleteTaskID),
 	}
 }
 
