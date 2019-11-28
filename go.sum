@@ -27,6 +27,7 @@ github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSs
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dgryski/go-sip13 v0.0.0-20181026042036-e10d5fee7954/go.mod h1:vAd38F8PWV+bWy6jNmig1y/TA+kYO4g3RSRF0IAv0no=
+github.com/etcd-io/bbolt v1.3.3/go.mod h1:ZF2nL25h33cCyBtcyWeZ2/I3HQOfTP+0PIEvHjkjCrw=
 github.com/fortytw2/leaktest v1.3.0 h1:u8491cBMTQ8ft8aeV+adlcytMZylmA5nnwwkRZjI8vw=
 github.com/fortytw2/leaktest v1.3.0/go.mod h1:jDsjWgpAGjm2CA7WthBh/CdZYEPF31XHquHwclZch5g=
 github.com/fsnotify/fsnotify v1.4.7 h1:IXs+QLmnXW2CcXuY+8Mzv/fWEsPGWxqefPtCP5CnV9I=
@@ -65,6 +66,10 @@ github.com/iov-one/weave v0.21.0 h1:BkFdJP14c8ihquYCweerh3zSc6FRTFutADLjKLLhHmI=
 github.com/iov-one/weave v0.21.0/go.mod h1:zVUS8DL28dwHRPYNQDiIydJ8j0/uB5Sb1LOeAzNVLQ4=
 github.com/iov-one/weave v0.21.2 h1:+aJaOCm7IeiLIYsY94OyR7cLOJ9t/rZxALJTeFu3rpI=
 github.com/iov-one/weave v0.21.2/go.mod h1:mhK0Dx8dcFsi3vU66JLA3vieTqUAA8egV3CAXgjSPWw=
+github.com/iov-one/weave v0.21.3 h1:q9QKXNajlOJBYSADljaWjoxZPsyvIZkp7xksnPIJAcE=
+github.com/iov-one/weave v0.21.3/go.mod h1:mhK0Dx8dcFsi3vU66JLA3vieTqUAA8egV3CAXgjSPWw=
+github.com/iov-one/weave v0.22.0 h1:xgoj4fumSGmBg+BMAgrq0b2RpntTaQ1KFdqRS6j/ews=
+github.com/iov-one/weave v0.22.0/go.mod h1:PEj1qLq5ST1U2MfbevqS3QOW9zPXB6ZQtqQ2/ckBzxE=
 github.com/jessevdk/go-flags v0.0.0-20141203071132-1679536dcc89/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=
 github.com/jmhodges/levigo v1.0.0 h1:q5EC36kV79HWeTBWsod3mG11EgStG3qArTKcvlksN1U=
 github.com/jmhodges/levigo v1.0.0/go.mod h1:Q6Qx+uH3RAqyK4rFQroq9RL7mdkABMcfhEI+nNuzMJQ=
@@ -138,6 +143,7 @@ github.com/tendermint/tendermint v0.31.9 h1:GJJ0IPPdA6EnIZ0gkMNJPxhatEkqSSOGfZKQ
 github.com/tendermint/tendermint v0.31.9/go.mod h1:ymcPyWblXCplCPQjbOYbrF1fWnpslATMVqiGgWbZrlc=
 github.com/tyler-smith/go-bip39 v1.0.1-0.20181017060643-dbb3b84ba2ef h1:wHSqTBrZW24CsNJDfeh9Ex6Pm0Rcpc7qrgKBiL44vF4=
 github.com/tyler-smith/go-bip39 v1.0.1-0.20181017060643-dbb3b84ba2ef/go.mod h1:sJ5fKU0s6JVwZjjcUEX2zFOnvq0ASQ2K9Zr6cf67kNs=
+go.etcd.io/bbolt v1.3.3/go.mod h1:IbVyRI1SCnLcuJnV2u8VeU0CEYM7e686BmAb1XKL+uU=
 golang.org/x/crypto v0.0.0-20170930174604-9419663f5a44/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
 golang.org/x/crypto v0.0.0-20180904163835-0709b304e793/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2 h1:VklqNMn3ovrHsnt90PveolxSbWFaJdECFbxSq0Mqo2M=

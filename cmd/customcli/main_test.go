@@ -1,13 +1,13 @@
 package main
 
 import (
-	"context"
-	"fmt"
-	"os"
-	"testing"
-	"time"
+"context"
+"fmt"
+"os"
+"testing"
+"time"
 
-	"github.com/iov-one/weave/tmtest"
+"github.com/iov-one/weave/tmtest"
 )
 
 // taken from testdata/config/config.toml - rpc.laddr
@@ -64,5 +64,9 @@ func (mockAsserter) Logf(format string, args ...interface{}) {
 }
 func (m mockAsserter) Skip(args ...interface{}) {
 	m.Log(args...)
+	os.Exit(0)
+}
+func (m mockAsserter) Skipf(format string, args ...interface{}) {
+	m.Logf(format, args...)
 	os.Exit(0)
 }
